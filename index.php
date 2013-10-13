@@ -114,7 +114,9 @@ label {
 			</tr>
 		</thead>
 		<tbody>
-			<? foreach ($transactions as $tr): ?>
+			<? foreach ($transactions as $tr):
+				$total += $tr->amount;
+				?>
 				<tr class="<?= implode(' ', $tr->classes) ?>">
 					<th><label for="tr-<?= $tr->id ?>"><?= $tr->id ?></label></th>
 					<td><input type="checkbox" name="check[]" value="<?= $tr->id ?>" class="cb" id="tr-<?= $tr->id ?>" /></td>
@@ -130,6 +132,11 @@ label {
 				</tr>
 			<? endforeach ?>
 		</tbody>
+		<tfoot>
+			<td colspan="3"></td>
+			<td class="amount"><?= number_format($total, 2) ?></td>
+			<td colspan="5"></td>
+		</tfoot>
 	</table>
 
 	<p>
