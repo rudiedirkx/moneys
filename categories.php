@@ -27,13 +27,17 @@ $categories[] = (object)array('id' => '', 'name' => '');
 			<tr>
 				<th>Name</th>
 				<th>Total spendings</th>
+				<th>Transactions</th>
 			</tr>
 		</thead>
 		<tbody>
-			<? foreach ($categories as $cat): ?>
+			<? foreach ($categories as $cat):
+				$num = $db->count('transactions', array('category_id' => $cat->id ?: null));
+				?>
 				<tr>
 					<td><input name="categories[<?= $cat->id ?>][name]" value="<?= html($cat->name) ?>" /></td>
 					<td class="amount"><?= number_format($spendings[$cat->id], 2) ?></td>
+					<td><a <? if ($cat->id): ?>href="index.php?category=<?= $cat->id ?>"<? endif ?>><?= $num ?></a></td>
 				</tr>
 			<? endforeach ?>
 		<tbody>

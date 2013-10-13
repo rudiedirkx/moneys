@@ -5,10 +5,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=1200, initial-scale=0.2" />
 <style>
-html {
-	background-color: #eee;
-}
-
 table {
 	border-collapse: collapse;
 }
@@ -59,6 +55,8 @@ select:focus {
 	<a href="parties.php">Parties</a>
 	|
 	<a href="categories.php">Categories</a>
+	|
+	<a href="tags.php">Tags</a>
 	|
 	<a href="import-ing.php">Import ING</a>
 </p>

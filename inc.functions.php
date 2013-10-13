@@ -9,15 +9,20 @@ function cache_parties() {
 	return $parties;
 }
 
-function do_redirect( $path, $query = null ) {
-	$fragment = '';
-	if ( is_int($p = strpos($path, '#')) ) {
-		$fragment = substr($path, $p);
-		$path = substr($path, 0, $p);
+function do_redirect( $path = false, $query = null ) {
+	if ( !$path ) {
+		$location = $_SERVER['HTTP_REFERER'];
 	}
+	else {
+		$fragment = '';
+		if ( is_int($p = strpos($path, '#')) ) {
+			$fragment = substr($path, $p);
+			$path = substr($path, 0, $p);
+		}
 
-	$query = $query ? '?' . http_build_query($query) : '';
-	$location = $path . '.php' . $query . $fragment;
+		$query = $query ? '?' . http_build_query($query) : '';
+		$location = $path . '.php' . $query . $fragment;
+	}
 
 	header('Location: ' . $location);
 	exit;

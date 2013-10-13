@@ -37,8 +37,13 @@ return array(
 		'name',
 	),
 	'tagged' => array(
-		'transaction_id' => array('unsigned' => true),
-		'tag_id' => array('unsigned' => true),
+		'columns' => array(
+			'transaction_id' => array('unsigned' => true),
+			'tag_id' => array('unsigned' => true),
+		),
+		'indexes' => array(
+			'tagged_pk' => array('columns' => array('transaction_id', 'tag_id'), 'unique' => true),
+		),
 	),
 	'tags' => array(
 		'id' => array('pk' => true),
