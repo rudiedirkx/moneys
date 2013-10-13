@@ -1,0 +1,4 @@
+db
+exports/*.csv
+exports/*.json
+env.php
