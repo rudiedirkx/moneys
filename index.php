@@ -92,13 +92,17 @@ label {
 		<thead>
 			<tr>
 				<td colspan="8">
-					<a href="?page=<?= $page - 1?>">&lt;&lt;</a>
-					|
+					<? if ($pager): ?>
+						<a href="?page=<?= $page - 1?>">&lt;&lt;</a>
+						|
+					<? endif ?>
 					<?= $offset + 1 ?> - <?= $offset + count($transactions) ?> / <?= $total ?>
-					|
-					page <?= $page + 1 ?> / <?= $pages ?>
-					|
-					<a href="?page=<?= $page + 1?>">&gt;&gt;</a>
+					<? if ($pager): ?>
+						|
+						page <?= $page + 1 ?> / <?= $pages ?>
+						|
+						<a href="?page=<?= $page + 1?>">&gt;&gt;</a>
+					<? endif ?>
 				</td>
 			</tr>
 			<tr>
