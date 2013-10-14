@@ -34,7 +34,7 @@ else if ( isset($_POST['category']) ) {
 	return do_redirect();
 }
 
-$conditions = array(1);
+$conditions = array();
 if ( !empty($_GET['category']) ) {
 	$cat = $_GET['category'] == -1 ? null : $_GET['category'];
 	$conditions[] = $db->stringifyConditions(array('category_id' => $cat));
@@ -42,19 +42,22 @@ if ( !empty($_GET['category']) ) {
 if ( !empty($_GET['tag']) ) {
 	$conditions[] = $db->replaceholders('id IN (SELECT transaction_id FROM tagged WHERE tag_id = ?)', array($_GET['tag']));
 }
+if ( !empty($_GET['min']) && !empty($_GET['max']) ) {
+	$conditions[] = $db->replaceholders('amount BETWEEN ? AND ?', array($_GET['min'], $_GET['max']));
+}
 if ( !empty($_GET['search']) ) {
 	$q = '%' . $_GET['search'] . '%';
 	$conditions[] = $db->replaceholders('(description LIKE ? OR summary LIKE ?)', array($q, $q));
 }
 // print_r($conditions);
-$condSql = '(' . implode(' AND ', $conditions) . ')';
+$condSql = $conditions ? '(' . implode(' AND ', $conditions) . ') AND' : '';
 
 $offset = $page * $perPage;
-$total = $db->count('transactions', $condSql);
+$total = $db->count('transactions', $condSql . ' 1');
 $pages = ceil($total / $perPage);
 
-$pager = @$conditions[1] ? '' : 'LIMIT ' . $perPage . ' OFFSET ' . $offset;
-$transactions = $db->select('transactions', $condSql . ' ORDER BY date DESC ' . $pager, null, 'Transaction')->all();
+$pager = $conditions ? '' : 'LIMIT ' . $perPage . ' OFFSET ' . $offset;
+$transactions = $db->select('transactions', $condSql . ' 1 ORDER BY date DESC ' . $pager, null, 'Transaction')->all();
 
 $tids = array_map(function($tr) { return $tr->id; }, $transactions);
 // print_r($tids);
@@ -93,19 +96,22 @@ label {
 
 <form action>
 	<p>
-		Category: <select name="category"><?= html_options($categories, @$_GET['category'], '-- All') ?></select>
-		Tag: <select name="tag"><?= html_options($tags, @$_GET['tag'], '-- All') ?></select>
+		Category: <select name="category"><?= html_options($categories, @$_GET['category'], '-- all') ?></select>
+		Tag: <select name="tag"><?= html_options($tags, @$_GET['tag'], '-- all') ?></select>
+		Amount: <input name="min" value="<?= @$_GET['min'] ?>" size="4" /> - <input name="max" value="<?= @$_GET['max'] ?>" size="4" />
 		Search: <input type="search" name="search" value="<?= @$_GET['search'] ?>" />
 		<button>&gt;&gt;</button>
 	</p>
 </form>
+
+<!-- <pre><strong>Filtered:</strong> <?= implode(' AND ', $conditions) ?></pre> -->
 
 <form method="post" action>
 	<table>
 		<thead>
 			<? ob_start() ?>
 				<tr class="pager">
-					<td colspan="9">
+					<td colspan="8">
 						<? if ($pager): ?>
 							<a href="?page=<?= $page - 1?>">&lt;&lt;</a>
 							|
@@ -126,8 +132,7 @@ label {
 				<th>Date</th>
 				<th>Amount</th>
 				<th>Type</th>
-				<th>Summary</th>
-				<th>Description</th>
+				<th>Summary &amp; Description</th>
 				<th>Category</th>
 				<th>Tags</th>
 			</tr>
@@ -142,8 +147,7 @@ label {
 					<td class="date" nowrap><?= $tr->date ?></td>
 					<td class="amount" nowrap><label for="tr-<?= $tr->id ?>"><?= $tr->formatted_amount ?></label></td>
 					<td class="type" nowrap><?= $tr->type ?></td>
-					<td class="summary"><?= html($tr->summary) ?></td>
-					<td class="description"><?= html($tr->description) ?></td>
+					<td class="summary"><?= html($tr->summary) ?> <?= html($tr->description) ?></td>
 					<td class="category <? if (!$tr->category_id): ?>empty<? endif ?>">
 						<select name="category[<?= $tr->id ?>]"><?= html_options($categories, $tr->selected_category_id, '--') ?></select>
 					</td>
@@ -156,7 +160,7 @@ label {
 			<tr>
 				<td colspan="3"></td>
 				<td class="amount"><?= html_money($total) ?></td>
-				<td colspan="5"></td>
+				<td colspan="4"></td>
 			</tr>
 		</tfoot>
 	</table>

@@ -8,6 +8,7 @@ $tags = $db->fetch('
 	JOIN tagged tt ON tt.tag_id = ta.id
 	JOIN transactions tr ON tr.id = tt.transaction_id
 	GROUP BY ta.id
+	ORDER BY tag ASC
 ')->all();
 // print_r($tags);
 
