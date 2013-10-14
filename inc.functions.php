@@ -1,5 +1,14 @@
 <?php
 
+function html_money($amount, $sign = false) {
+	if ( $amount !== null ) {
+		$sign = $sign && $amount > 0 ? '+' : '';
+		return $sign . number_format((float)$amount, 2);
+	}
+
+	return '';
+}
+
 function cache_parties() {
 	static $parties = false;
 	if ( !is_array($parties) ) {

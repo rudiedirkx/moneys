@@ -19,6 +19,7 @@ if ( isset($_POST['check']) ) {
 		$db->commit();
 	}
 
+	// exit;
 	return do_redirect();
 }
 
@@ -29,12 +30,14 @@ else if ( isset($_POST['category']) ) {
 	}
 	$db->commit();
 
+	// exit;
 	return do_redirect();
 }
 
 $conditions = array(1);
 if ( !empty($_GET['category']) ) {
-	$conditions[] = $db->replaceholders('category_id = ?', array($_GET['category']));
+	$cat = $_GET['category'] == -1 ? null : $_GET['category'];
+	$conditions[] = $db->stringifyConditions(array('category_id' => $cat));
 }
 if ( !empty($_GET['tag']) ) {
 	$conditions[] = $db->replaceholders('id IN (SELECT transaction_id FROM tagged WHERE tag_id = ?)', array($_GET['tag']));
@@ -73,8 +76,18 @@ require 'tpl.header.php';
 
 ?>
 <style>
+.cb-checked {
+	background-color: green;
+}
+form.saving-tags button.save-cats,
+form:not(.saving-tags) button.save-tags {
+	display: none;
+}
 label {
 	display: block;
+}
+.pager {
+	text-align: center;
 }
 </style>
 
@@ -90,24 +103,26 @@ label {
 <form method="post" action>
 	<table>
 		<thead>
-			<tr>
-				<td colspan="8">
-					<? if ($pager): ?>
-						<a href="?page=<?= $page - 1?>">&lt;&lt;</a>
-						|
-					<? endif ?>
-					<?= $offset + 1 ?> - <?= $offset + count($transactions) ?> / <?= $total ?>
-					<? if ($pager): ?>
-						|
-						page <?= $page + 1 ?> / <?= $pages ?>
-						|
-						<a href="?page=<?= $page + 1?>">&gt;&gt;</a>
-					<? endif ?>
-				</td>
-			</tr>
+			<? ob_start() ?>
+				<tr class="pager">
+					<td colspan="9">
+						<? if ($pager): ?>
+							<a href="?page=<?= $page - 1?>">&lt;&lt;</a>
+							|
+						<? endif ?>
+						<?= $offset + 1 ?> - <?= $offset + count($transactions) ?> / <?= $total ?>
+						<? if ($pager): ?>
+							|
+							page <?= $page + 1 ?> / <?= $pages ?>
+							|
+							<a href="?page=<?= $page + 1?>">&gt;&gt;</a>
+						<? endif ?>
+					</td>
+				</tr>
+			<? $pager_html = ob_get_contents() ?>
 			<tr>
 				<th></th>
-				<th><input type="checkbox" onclick="$$('tbody .cb').prop('checked', this.checked)" /></th>
+				<th><input type="checkbox" onclick="$$('tbody .cb').prop('checked', this.checked); onCheck()" /></th>
 				<th>Date</th>
 				<th>Amount</th>
 				<th>Type</th>
@@ -123,12 +138,12 @@ label {
 				?>
 				<tr class="<?= implode(' ', $tr->classes) ?>">
 					<th><label for="tr-<?= $tr->id ?>"><?= $tr->id ?></label></th>
-					<td><input type="checkbox" name="check[]" value="<?= $tr->id ?>" class="cb" id="tr-<?= $tr->id ?>" /></td>
+					<td><input type="checkbox" name="check[]" value="<?= $tr->id ?>" class="cb" id="tr-<?= $tr->id ?>" onclick="onCheck()" /></td>
 					<td class="date" nowrap><?= $tr->date ?></td>
-					<td class="amount" nowrap><?= $tr->formatted_amount ?></td>
+					<td class="amount" nowrap><label for="tr-<?= $tr->id ?>"><?= $tr->formatted_amount ?></label></td>
 					<td class="type" nowrap><?= $tr->type ?></td>
-					<td class="summary"><label for="tr-<?= $tr->id ?>"><?= html($tr->summary) ?></label></td>
-					<td class="description"><label for="tr-<?= $tr->id ?>"><?= html($tr->description) ?></label></td>
+					<td class="summary"><?= html($tr->summary) ?></td>
+					<td class="description"><?= html($tr->description) ?></td>
 					<td class="category <? if (!$tr->category_id): ?>empty<? endif ?>">
 						<select name="category[<?= $tr->id ?>]"><?= html_options($categories, $tr->selected_category_id, '--') ?></select>
 					</td>
@@ -137,19 +152,34 @@ label {
 			<? endforeach ?>
 		</tbody>
 		<tfoot>
-			<td colspan="3"></td>
-			<td class="amount"><?= number_format($total, 2) ?></td>
-			<td colspan="5"></td>
+			<?= $pager_html ?>
+			<tr>
+				<td colspan="3"></td>
+				<td class="amount"><?= html_money($total) ?></td>
+				<td colspan="5"></td>
+			</tr>
 		</tfoot>
 	</table>
 
 	<p>
-		<button>Save</button>
+		<button class="save-cats">Save</button>
+		<button class="save-tags">Save tags</button>
 		Add tag: <input name="add_tag" />
 	</p>
 </form>
 
 <script defer async src="rjs-custom.js"></script>
+<script>
+function onCheck() {
+	var m = $$('tbody .cb:checked').length ? 'addClass' : 'removeClass';
+	$$('form')[m]('saving-tags');
+
+	$$('tbody .cb').each(function(cb) {
+		var m = cb.checked ? 'addClass' : 'removeClass';
+		cb.parentNode[m]('cb-checked');
+	});
+}
+</script>
 <?php
 
 require 'tpl.footer.php';

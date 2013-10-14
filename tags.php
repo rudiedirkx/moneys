@@ -11,7 +11,7 @@ $tags = $db->fetch('
 ')->all();
 // print_r($tags);
 
-$spendings = $db->fetch_fields('SELECT ta.tag_id, SUM(tr.amount) amount FROM transactions tr JOIN tagged ta ON ta.transaction_id = tr.id WHERE tr.amount < 0 GROUP BY ta.tag_id');
+$spendings = $db->fetch_fields('SELECT ta.tag_id, SUM(tr.amount) amount FROM transactions tr JOIN tagged ta ON ta.transaction_id = tr.id GROUP BY ta.tag_id');
 // print_r($spendings);
 
 require 'tpl.header.php';
@@ -29,7 +29,7 @@ require 'tpl.header.php';
 		<? foreach ($tags as $tag): ?>
 			<tr>
 				<td><?= html($tag->tag) ?></td>
-				<td class="amount"><?= number_format($spendings[$tag->id], 2) ?></td>
+				<td class="amount"><?= html_money($spendings[$tag->id]) ?></td>
 				<td><a href="index.php?tag=<?= $tag->id ?>"><?= $tag->num_transactions ?></a></td>
 			</tr>
 		<? endforeach ?>

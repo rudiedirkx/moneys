@@ -37,8 +37,7 @@ class Transaction extends db_generic_record {
 
 	function get_formatted_amount() {
 		$amount = (float)$this->amount;
-		$sign = $amount > 0 ? '+' : '';
-		return $sign . number_format($amount, 2);
+		return html_money($amount, 2, true);
 	}
 
 	function get_classes() {

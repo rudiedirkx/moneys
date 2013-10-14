@@ -18,7 +18,7 @@ if ( isset($_POST['parties']) ) {
 			}
 			// Delete
 			else {
-				// $db->delete();
+				$db->delete('parties', compact('id'));
 			}
 		}
 		// New
@@ -42,10 +42,14 @@ $parties[] = (object)array('id' => '', 'name' => '');
 
 ?>
 <style>
+.auto {
+	white-space: nowrap;
+}
 .auto input {
 	border: 0;
 	border-bottom: solid 1px #aaa;
 	background-color: transparent;
+	width: 320px;
 }
 </style>
 
@@ -54,13 +58,12 @@ $parties[] = (object)array('id' => '', 'name' => '');
 		<thead>
 			<tr>
 				<th rowspan="2">Name</th>
-				<th colspan="3" class="c">Auto-assign (regex)</th>
+				<th colspan="2" class="c">Auto-assign (regex)</th>
 				<th rowspan="2">Category</th>
 			</tr>
 			<tr>
 				<th>Summary</th>
 				<th>Description</th>
-				<th>Account no.</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -73,9 +76,6 @@ $parties[] = (object)array('id' => '', 'name' => '');
 						</td>
 						<td class="auto">
 							#<input name="parties[<?= $party->id ?>][auto_description]" value="<?= $party->auto_description ?>" />#i
-						</td>
-						<td class="auto">
-							#<input name="parties[<?= $party->id ?>][auto_account]" value="<?= $party->auto_account ?>" />#i
 						</td>
 						<td><select name="parties[<?= $party->id ?>][category_id]"><?= html_options($categories, $party->category_id, '--') ?></select></td>
 					<? endif ?>
