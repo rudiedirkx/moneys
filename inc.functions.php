@@ -1,5 +1,20 @@
 <?php
 
+function sort_opposite( $column, $current ) {
+	// Reverse direction
+	if ( $column == ltrim($current, '-') ) {
+		return $current[0] == '-' ? $column : '-' . $column;
+	}
+
+	// New column, default direction
+	return '-' . $column;
+}
+
+function html_query( $add ) {
+	$q = $add + $_GET;
+	return http_build_query($q);
+}
+
 function html_money( $amount, $sign = false ) {
 	if ( $amount !== null ) {
 		$sign = $sign && $amount > 0 ? '+' : '';

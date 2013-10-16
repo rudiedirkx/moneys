@@ -42,7 +42,7 @@ if ( !empty($_GET['category']) ) {
 if ( !empty($_GET['tag']) ) {
 	$conditions[] = $db->replaceholders('id IN (SELECT transaction_id FROM tagged WHERE tag_id = ?)', array($_GET['tag']));
 }
-if ( !empty($_GET['min']) && !empty($_GET['max']) ) {
+if ( @$_GET['min'] != '' && @$_GET['max'] != '' ) {
 	$min = (int)$_GET['min'];
 	$max = (int)$_GET['max'];
 	$max < $min and list($min, $max) = array($max, $min);
@@ -62,8 +62,14 @@ $offset = $page * $perPage;
 $total = $db->count('transactions', $condSql . ' 1');
 $pages = ceil($total / $perPage);
 
+$sort = isset($_GET['sort']) ? preg_replace('#[^\w-]#', '', $_GET['sort']) : '-date';
+// var_dump($sort);
+$sortDirection = $sort[0] == '-' ? 'DESC' : 'ASC';
+$sortColumn = ltrim($sort, '-');
+
 $pager = $conditions ? '' : 'LIMIT ' . $perPage . ' OFFSET ' . $offset;
-$transactions = $db->select('transactions', $condSql . ' 1 ORDER BY date DESC ' . $pager, null, 'Transaction')->all();
+$query = $condSql . ' 1 ORDER BY ' . $sortColumn . ' ' . $sortDirection . ' ' . $pager;
+$transactions = $db->select('transactions', $query, null, 'Transaction')->all();
 
 $tids = array_map(function($tr) { return $tr->id; }, $transactions);
 // print_r($tids);
@@ -117,6 +123,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 </style>
 
 <form action>
+	<input type="hidden" name="sort" value="<?= html($sort) ?>" />
 	<p>
 		Category: <select name="category"><?= html_options($categories, @$_GET['category'], '-- all') ?></select>
 		Tag: <select name="tag"><?= html_options($tags, @$_GET['tag'], '-- all') ?></select>
@@ -126,8 +133,6 @@ body:not(.hide-sumdesc) .show-sumdesc {
 		<button>&gt;&gt;</button>
 	</p>
 </form>
-
-<!-- <pre><strong>Filtered:</strong> <?= implode(' AND ', $conditions) ?></pre> -->
 
 <p class="show-sumdesc"><a href="javascript:void(0)" onclick="document.body.toggleClass('hide-sumdesc')">Show Summary &amp; Description</a></p>
 
@@ -154,8 +159,8 @@ body:not(.hide-sumdesc) .show-sumdesc {
 			<tr>
 				<th class="col-id"></th>
 				<th class="col-cb"><input type="checkbox" onclick="$$('tbody .cb').prop('checked', this.checked); onCheck()" /></th>
-				<th>Date</th>
-				<th>Amount</th>
+				<th><a href="index.php?<?= html_query(array('sort' => sort_opposite('date', $sort))) ?>">Date</a></th>
+				<th><a href="index.php?<?= html_query(array('sort' => sort_opposite('amount', $sort))) ?>">Amount</a></th>
 				<th class="col-type">Type</th>
 				<th class="col-sumdesc"><a href="javascript:void(0)" onclick="document.body.toggleClass('hide-sumdesc')">Summary &amp; Description</a></th>
 				<th>Category</th>
@@ -198,6 +203,8 @@ body:not(.hide-sumdesc) .show-sumdesc {
 		Add tag: <input name="add_tag" />
 	</p>
 </form>
+
+<pre><strong>Query:</strong> <?= html($query); ?></pre>
 
 <script>
 function onCheck() {
