@@ -7,12 +7,10 @@ class Transaction extends db_generic_record {
 
 		$suggestions = array();
 		foreach ( $parties as $party ) {
-			foreach ( array('description', 'summary', 'account') as $field ) {
-				if ( $party['auto_' . $field] ) {
-					$regex = '#' . $party['auto_' . $field] . '#i';
-					if ( preg_match($regex, $this->$field) ) {
-						$suggestions[] = $party->id;
-					}
+			if ( $party['auto_sumdesc'] ) {
+				$regex = '#' . $party['auto_sumdesc'] . '#i';
+				if ( preg_match($regex, $this->description) || preg_match($regex, $this->summary) ) {
+					$suggestions[] = $party->id;
 				}
 			}
 		}

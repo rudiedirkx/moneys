@@ -27,8 +27,9 @@ return array(
 	'parties' => array(
 		'id' => array('pk' => true),
 		'name' => array('null' => false),
-		'auto_summary' => array('null' => false, 'default' => ''),
-		'auto_description' => array('null' => false, 'default' => ''),
+		// 'auto_summary' => array('null' => false, 'default' => ''),
+		// 'auto_description' => array('null' => false, 'default' => ''),
+		'auto_sumdesc' => array('null' => false, 'default' => ''),
 		'auto_account' => array('null' => false, 'default' => ''),
 		'category_id' => array('unsigned' => true, 'null' => true),
 	),
