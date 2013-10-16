@@ -30,7 +30,7 @@ require 'tpl.header.php';
 		<? foreach ($tags as $tag): ?>
 			<tr>
 				<td><?= html($tag->tag) ?></td>
-				<td class="amount"><?= html_money($spendings[$tag->id]) ?></td>
+				<td class="amount"><?= html_money($spendings[$tag->id], true) ?></td>
 				<td><a href="index.php?tag=<?= $tag->id ?>"><?= $tag->num_transactions ?></a></td>
 			</tr>
 		<? endforeach ?>

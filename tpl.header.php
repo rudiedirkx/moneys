@@ -69,5 +69,7 @@ select:focus {
 	|
 	<a href="import-ing.php">Import ING</a>
 	|
+	<a href="types.php">Types</a>
+	|
 	<?= $daysSinceLastImport ?> days since last import
 </p>
