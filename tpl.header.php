@@ -1,8 +1,17 @@
+<?php
+
+$lastImport = $db->select_one('transactions', 'date', '1 ORDER BY date DESC LIMIT 1');
+$daysSinceLastImport = round((time() - strtotime($lastImport)) / 86400);
+
+isset($pageTitle) or $pageTitle = substr(basename($_SERVER['PHP_SELF']), 0, -4);
+
+?>
 <!doctype html>
 <html>
 
 <head>
 <meta charset="utf-8" />
+<title>Moneys | <?= $pageTitle ?></title>
 <meta name="viewport" content="initial-scale=0.2" />
 <style>
 table {
@@ -59,4 +68,6 @@ select:focus {
 	<a href="tags.php">Tags</a>
 	|
 	<a href="import-ing.php">Import ING</a>
+	|
+	<?= $daysSinceLastImport ?> days since last import
 </p>

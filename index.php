@@ -189,7 +189,6 @@ body:not(.hide-sumdesc) .show-sumdesc {
 	</p>
 </form>
 
-<script defer async src="rjs-custom.js"></script>
 <script>
 function onCheck() {
 	var m = $$('tbody .cb:checked').length ? 'addClass' : 'removeClass';
