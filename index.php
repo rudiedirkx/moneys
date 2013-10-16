@@ -97,7 +97,7 @@ tr + .new-month th {
 	border-top-width: 7px;
 }
 @media (max-width: 1000px) {
-	.col-id, .col-cb {
+	.col-id, .col-cb, .col-type {
 		display: none;
 	}
 }
@@ -146,7 +146,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 				<th class="col-cb"><input type="checkbox" onclick="$$('tbody .cb').prop('checked', this.checked); onCheck()" /></th>
 				<th>Date</th>
 				<th>Amount</th>
-				<th>Type</th>
+				<th class="col-type">Type</th>
 				<th class="col-sumdesc"><a href="javascript:void(0)" onclick="document.body.toggleClass('hide-sumdesc')">Summary &amp; Description</a></th>
 				<th>Category</th>
 				<th>Tags</th>
@@ -163,7 +163,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 					<td class="col-cb"><input type="checkbox" name="check[]" value="<?= $tr->id ?>" class="cb" id="tr-<?= $tr->id ?>" onclick="onCheck()" /></td>
 					<td class="date" nowrap><?= $tr->date ?></td>
 					<td class="amount" nowrap><label for="tr-<?= $tr->id ?>"><?= $tr->formatted_amount ?></label></td>
-					<td class="type" nowrap><?= $tr->type ?></td>
+					<td class="col-type" nowrap><?= $tr->type ?></td>
 					<td class="col-sumdesc"><?= html($tr->summary) ?> <?= html($tr->description) ?></td>
 					<td class="category <? if (!$tr->category_id): ?>empty<? endif ?>">
 						<select name="category[<?= $tr->id ?>]"><?= html_options($categories, $tr->selected_category_id, '--') ?></select>
