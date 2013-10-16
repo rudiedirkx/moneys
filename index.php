@@ -45,6 +45,9 @@ if ( !empty($_GET['tag']) ) {
 if ( !empty($_GET['min']) && !empty($_GET['max']) ) {
 	$conditions[] = $db->replaceholders('amount BETWEEN ? AND ?', array($_GET['min'], $_GET['max']));
 }
+if ( !empty($_GET['year']) ) {
+	$conditions[] = $db->replaceholders('date LIKE ?', array($_GET['year'] . '-_%'));
+}
 if ( !empty($_GET['search']) ) {
 	$q = '%' . $_GET['search'] . '%';
 	$conditions[] = $db->replaceholders('(description LIKE ? OR summary LIKE ?)', array($q, $q));
@@ -64,6 +67,9 @@ $tids = array_map(function($tr) { return $tr->id; }, $transactions);
 
 $categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
 // print_r($categories);
+
+$years = array_reverse(range(date('Y')-5, date('Y')));
+$years = array_combine($years, $years);
 
 $tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 // print_r($tags);
@@ -112,6 +118,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 		Category: <select name="category"><?= html_options($categories, @$_GET['category'], '-- all') ?></select>
 		Tag: <select name="tag"><?= html_options($tags, @$_GET['tag'], '-- all') ?></select>
 		Amount: <input name="min" value="<?= @$_GET['min'] ?>" size="4" /> - <input name="max" value="<?= @$_GET['max'] ?>" size="4" />
+		Year: <select name="year"><?= html_options($years, @$_GET['year'], '-- all') ?></select>
 		Search: <input type="search" name="search" value="<?= @$_GET['search'] ?>" />
 		<button>&gt;&gt;</button>
 	</p>
