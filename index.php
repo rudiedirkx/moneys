@@ -92,6 +92,19 @@ label {
 .pager {
 	text-align: center;
 }
+tr + .new-month td,
+tr + .new-month th {
+	border-top-width: 7px;
+}
+@media (max-width: 1000px) {
+	.col-id, .col-cb {
+		display: none;
+	}
+}
+.hide-sumdesc .col-sumdesc,
+body:not(.hide-sumdesc) .show-sumdesc {
+	display: none;
+}
 </style>
 
 <form action>
@@ -105,6 +118,8 @@ label {
 </form>
 
 <!-- <pre><strong>Filtered:</strong> <?= implode(' AND ', $conditions) ?></pre> -->
+
+<p class="show-sumdesc"><a href="javascript:void(0)" onclick="document.body.toggleClass('hide-sumdesc')">Show Summary &amp; Description</a></p>
 
 <form method="post" action>
 	<table>
@@ -127,12 +142,12 @@ label {
 				</tr>
 			<? $pager_html = ob_get_contents() ?>
 			<tr>
-				<th></th>
-				<th><input type="checkbox" onclick="$$('tbody .cb').prop('checked', this.checked); onCheck()" /></th>
+				<th class="col-id"></th>
+				<th class="col-cb"><input type="checkbox" onclick="$$('tbody .cb').prop('checked', this.checked); onCheck()" /></th>
 				<th>Date</th>
 				<th>Amount</th>
 				<th>Type</th>
-				<th>Summary &amp; Description</th>
+				<th class="col-sumdesc"><a href="javascript:void(0)" onclick="document.body.toggleClass('hide-sumdesc')">Summary &amp; Description</a></th>
 				<th>Category</th>
 				<th>Tags</th>
 			</tr>
@@ -140,14 +155,16 @@ label {
 		<tbody>
 			<? foreach ($transactions as $tr):
 				$total += $tr->amount;
+				$tr->new_month = @$old_month != $tr->month;
+				$old_month = $tr->month;
 				?>
 				<tr class="<?= implode(' ', $tr->classes) ?>">
-					<th><label for="tr-<?= $tr->id ?>"><?= $tr->id ?></label></th>
-					<td><input type="checkbox" name="check[]" value="<?= $tr->id ?>" class="cb" id="tr-<?= $tr->id ?>" onclick="onCheck()" /></td>
+					<th class="col-id"><label for="tr-<?= $tr->id ?>"><?= $tr->id ?></label></th>
+					<td class="col-cb"><input type="checkbox" name="check[]" value="<?= $tr->id ?>" class="cb" id="tr-<?= $tr->id ?>" onclick="onCheck()" /></td>
 					<td class="date" nowrap><?= $tr->date ?></td>
 					<td class="amount" nowrap><label for="tr-<?= $tr->id ?>"><?= $tr->formatted_amount ?></label></td>
 					<td class="type" nowrap><?= $tr->type ?></td>
-					<td class="summary"><?= html($tr->summary) ?> <?= html($tr->description) ?></td>
+					<td class="col-sumdesc"><?= html($tr->summary) ?> <?= html($tr->description) ?></td>
 					<td class="category <? if (!$tr->category_id): ?>empty<? endif ?>">
 						<select name="category[<?= $tr->id ?>]"><?= html_options($categories, $tr->selected_category_id, '--') ?></select>
 					</td>
@@ -159,7 +176,7 @@ label {
 			<?= $pager_html ?>
 			<tr>
 				<td colspan="3"></td>
-				<td class="amount"><?= html_money($total) ?></td>
+				<td class="amount"><?= html_money($total, true) ?></td>
 				<td colspan="4"></td>
 			</tr>
 		</tfoot>

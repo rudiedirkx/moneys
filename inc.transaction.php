@@ -2,6 +2,10 @@
 
 class Transaction extends db_generic_record {
 
+	function get_month() {
+		return substr($this->date, 0, 7);
+	}
+
 	function get_party_id_suggestion() {
 		$parties = cache_parties();
 
@@ -39,9 +43,11 @@ class Transaction extends db_generic_record {
 	}
 
 	function get_classes() {
-		return array(
+		$classes = array(
 			$this->amount > 0 ? 'dir-in' : 'dir-out',
 		);
+		$this->new_month and $classes[] = 'new-month';
+		return $classes;
 	}
 
 }
