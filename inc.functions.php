@@ -1,12 +1,22 @@
 <?php
 
-function html_money($amount, $sign = false) {
+function html_money( $amount, $sign = false ) {
 	if ( $amount !== null ) {
 		$sign = $sign && $amount > 0 ? '+' : '';
 		return $sign . number_format((float)$amount, 2);
 	}
 
 	return '';
+}
+
+function cache_months() {
+	static $months;
+	if ( !$months ) {
+		for ( $i=1; $i<=12; $i++ ) {
+			$months[ $i ] = date('M', strtotime('2001-' . substr('0' . $i, -2) . '-01'));
+		}
+	}
+	return $months;
 }
 
 function cache_parties() {
