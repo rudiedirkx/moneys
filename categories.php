@@ -66,7 +66,7 @@ $categories[] = (object)array('id' => '', 'name' => '');
 					<td class="amount"><?= html_money(@$spendings[$cat->id] ?: 0, true) ?></td>
 					<td><a href="index.php?category=<?= $cat->id ?: -1 ?>"><?= $num ?></a></td>
 					<? foreach ($spendingsPerYear as $year => $data): ?>
-						<td class="amount"><?= html_money(@$data[$cat->id], true) ?></td>
+						<td class="amount"><a href="index.php?category=<?= $cat->id ?>&year=<?= $year ?>"><?= html_money(@$data[$cat->id], true) ?></a></td>
 					<? endforeach ?>
 				</tr>
 			<? endforeach ?>

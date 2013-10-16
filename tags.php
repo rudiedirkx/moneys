@@ -16,14 +16,14 @@ $spendings = $db->fetch_fields('SELECT ta.tag_id, SUM(tr.amount) amount FROM tra
 // print_r($spendings);
 
 $spendingsPerYear = array_reduce($db->fetch('
-	SELECT ta.tag, SUBSTR(tr.date, 1, 4) year, SUM(tr.amount) amount
+	SELECT ta.id, SUBSTR(tr.date, 1, 4) year, SUM(tr.amount) amount
 	FROM tags ta
 	JOIN tagged tt ON tt.tag_id = ta.id
 	JOIN transactions tr ON tr.id = tt.transaction_id
 	GROUP BY tag, year
 	ORDER BY year DESC
 ')->all(), function($result, $record) {
-	$result[ $record->year ][ $record->tag ] = $record->amount;
+	$result[ $record->year ][ $record->id ] = $record->amount;
 	return $result;
 }, array());
 // print_r($spendingsPerYear);
@@ -49,7 +49,7 @@ require 'tpl.header.php';
 				<td class="amount"><?= html_money($spendings[$tag->id], true) ?></td>
 				<td><a href="index.php?tag=<?= $tag->id ?>"><?= $tag->num_transactions ?></a></td>
 				<? foreach ($spendingsPerYear as $year => $data): ?>
-					<td class="amount"><?= html_money(@$data[$tag->tag], true) ?></td>
+					<td class="amount"><a href="index.php?tag=<?= $tag->id ?>&year=<?= $year ?>"><?= html_money(@$data[$tag->id], true) ?></a></td>
 				<? endforeach ?>
 			</tr>
 		<? endforeach ?>
