@@ -5,9 +5,30 @@ require 'inc.bootstrap.php';
 if ( isset($_POST['categories']) ) {
 	header('Content-type: text/plain');
 
-	print_r($_POST['categories']);
+	$db->begin();
+	foreach ( $_POST['categories'] as $id => $cat ) {
+		$name = trim($cat['name']);
 
-	exit;
+		// Existing
+		if ( $id ) {
+			// Update
+			if ( $name ) {
+				$db->update('categories', $cat, compact('id'));
+			}
+			// Delete
+			else {
+				$db->update('transactions', array('category_id' => null), array('category_id' => $id));
+				$db->delete('categories', compact('id'));
+			}
+		}
+		// New
+		else if ( $name ) {
+			$db->insert('categories', $cat);
+		}
+	}
+	$db->commit();
+
+	return do_redirect('categories');
 }
 
 $categories = $db->select('categories', '1 ORDER BY name ASC')->all();
@@ -62,7 +83,7 @@ $categories[] = (object)array('id' => '', 'name' => '');
 				$num = $db->count('transactions', array('category_id' => $cat->id ?: null));
 				?>
 				<tr>
-					<td><input name="categories[<?= $cat->id ?>][name]" value="<?= html($cat->name) ?>" /></td>
+					<td><input name="categories[<?= $cat->id ?: 0 ?>][name]" value="<?= html($cat->name) ?>" /></td>
 					<td class="amount"><?= html_money(@$spendings[$cat->id] ?: 0, true) ?></td>
 					<td><a href="index.php?category=<?= $cat->id ?: -1 ?>"><?= $num ?></a></td>
 					<? foreach ($spendingsPerYear as $year => $data): ?>
