@@ -43,7 +43,10 @@ if ( !empty($_GET['tag']) ) {
 	$conditions[] = $db->replaceholders('id IN (SELECT transaction_id FROM tagged WHERE tag_id = ?)', array($_GET['tag']));
 }
 if ( !empty($_GET['min']) && !empty($_GET['max']) ) {
-	$conditions[] = $db->replaceholders('amount BETWEEN ? AND ?', array($_GET['min'], $_GET['max']));
+	$min = (int)$_GET['min'];
+	$max = (int)$_GET['max'];
+	$max < $min and list($min, $max) = array($max, $min);
+	$conditions[] = $db->replaceholders('amount BETWEEN ? AND ?', array($min, $max));
 }
 if ( !empty($_GET['year']) ) {
 	$conditions[] = $db->replaceholders('date LIKE ?', array($_GET['year'] . '-_%'));
