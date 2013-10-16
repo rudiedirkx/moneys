@@ -22,7 +22,7 @@ require 'tpl.header.php';
 	<thead>
 		<tr>
 			<th>Name</th>
-			<th>Total spendings</th>
+			<th>Total in/out</th>
 			<th>Transactions</th>
 		</tr>
 	</thead>
