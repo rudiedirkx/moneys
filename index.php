@@ -190,9 +190,12 @@ body:not(.hide-sumdesc) .show-sumdesc {
 		<tfoot>
 			<?= $pager_html ?>
 			<tr>
-				<td colspan="3"></td>
+				<td class="col-id"></td>
+				<td class="col-cb"></td>
+				<td class="col-date"></td>
 				<td class="amount"><?= html_money($total, true) ?></td>
-				<td colspan="4"></td>
+				<td class="col-type"></td>
+				<td colspan="3"></td>
 			</tr>
 		</tfoot>
 	</table>
