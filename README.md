@@ -22,13 +22,13 @@ Requirements
 ----
 
 * PHP `>= 5.3`, obviously.
-* The database is SQLite3 with [db_generic](https://github.com/rudiedirkx/db_generic) as DBAL, so you need db_generic
+* The database is SQLite3 with [db_generic](https://github.com/rudiedirkx/db_generic) as DBAL, so you need `db_generic`
   and a writable folder for the db file and sqlite cache.
 
 Get started
 ----
 
 1. Download, clone, whatever this repo & [db_generic](https://github.com/rudiedirkx/db_generic).
-2. Create a folder 'db' in the root and make it webserver-writable.
-3. Copy env.php.orig to env.php and change `WHERE_DB_GENERIC_AT` to the correct path to include db_generic.
+2. Create a folder `db` in the root and make it webserver-writable.
+3. Copy `env.php.orig` to `env.php` and change `WHERE_DB_GENERIC_AT` to the correct path to include `db_generic`.
 4. Good to go: import CSV etc
