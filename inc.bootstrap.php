@@ -9,7 +9,7 @@ $ip = $_SERVER['REMOTE_ADDR'];
 $local = preg_match('#^192\.168\.#', $ip) || preg_match('#^127\.0\.#', $ip);
 
 $db = 'moneys';
-if ( $local ) {
+if ( !$local ) {
 	// Find user auth
 	if ( empty($_SERVER['PHP_AUTH_USER']) || empty($_SERVER['PHP_AUTH_PW']) ) {
 		header('WWW-Authenticate: Basic realm="Every user + pass creates a new encrypted db, so remember them!"');
