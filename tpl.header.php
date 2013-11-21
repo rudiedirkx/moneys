@@ -1,7 +1,7 @@
 <?php
 
 $lastImport = $db->select_one('transactions', 'date', '1 ORDER BY date DESC LIMIT 1');
-$daysSinceLastImport = round((time() - strtotime($lastImport)) / 86400);
+$daysSinceLastImport = $lastImport ? round((time() - strtotime($lastImport)) / 86400) : '?';
 
 isset($pageTitle) or $pageTitle = substr(basename($_SERVER['PHP_SELF']), 0, -4);
 
