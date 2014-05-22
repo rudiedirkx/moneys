@@ -5,8 +5,7 @@ require 'env.php';
 
 
 // Find db name
-$ip = $_SERVER['REMOTE_ADDR'];
-$local = preg_match('#^192\.168\.#', $ip) || preg_match('#^127\.0\.#', $ip);
+$local = preg_match('#' . str_replace('.', '\\.', LOCAL_IPS_REGEX) . '#', $_SERVER['REMOTE_ADDR']);
 
 $db = 'moneys';
 if ( !$local ) {
