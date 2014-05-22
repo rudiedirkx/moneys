@@ -78,7 +78,12 @@ $categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC'
 // print_r($categories);
 
 $years = array_reverse(range(date('Y')-5, date('Y')));
-$years = array_combine($years, $years);
+$years = array_reduce(range(0, 60), function($months, $offset) {
+	$utc = strtotime('-' . $offset . ' months');
+	$offset % date('n') == 0 and $months += array(date('Y', $utc) => date('Y', $utc));
+	$months += array(date('Y-m', $utc) => strtolower(date('Y - M', $utc)));
+	return $months;
+}, array());
 
 $tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 // print_r($tags);
