@@ -13,6 +13,9 @@ isset($pageTitle) or $pageTitle = substr(basename($_SERVER['PHP_SELF']), 0, -4);
 <meta charset="utf-8" />
 <title>Moneys | <?= $pageTitle ?></title>
 <meta name="viewport" content="initial-scale=0.2" />
+<link rel="icon" type="image/png" href="favicon-128.png" sizes="128x128" />
+<link rel="icon" href="favicon.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 <style>
 table {
 	border-collapse: collapse;
