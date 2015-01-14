@@ -25,17 +25,21 @@ return array(
 		),
 	),
 	'parties' => array(
-		'id' => array('pk' => true),
-		'name' => array('null' => false),
-		// 'auto_summary' => array('null' => false, 'default' => ''),
-		// 'auto_description' => array('null' => false, 'default' => ''),
-		'auto_sumdesc' => array('null' => false, 'default' => ''),
-		'auto_account' => array('null' => false, 'default' => ''),
-		'category_id' => array('unsigned' => true, 'null' => true),
+		'columns' => array(
+			'id' => array('pk' => true),
+			'name' => array('null' => false),
+			// 'auto_summary' => array('null' => false, 'default' => ''),
+			// 'auto_description' => array('null' => false, 'default' => ''),
+			'auto_sumdesc' => array('null' => false, 'default' => ''),
+			'auto_account' => array('null' => false, 'default' => ''),
+			'category_id' => array('unsigned' => true, 'null' => true),
+		),
 	),
 	'categories' => array(
-		'id' => array('pk' => true),
-		'name',
+		'columns' => array(
+			'id' => array('pk' => true),
+			'name',
+		),
 	),
 	'tagged' => array(
 		'columns' => array(
@@ -47,8 +51,16 @@ return array(
 		),
 	),
 	'tags' => array(
-		'id' => array('pk' => true),
-		'tag',
+		'columns' => array(
+			'id' => array('pk' => true),
+			'tag',
+		),
+	),
+	'variables' => array(
+		'columns' => array(
+			'name' => array('type' => 'text', 'unique' => true),
+			'value' => array('type' => 'text'),
+		),
 	),
 );
 

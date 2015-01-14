@@ -49,6 +49,9 @@ td.amount {
 tr.dir-out td.category.empty {
 	background: #faa;
 }
+tr.dir-in td.category.empty {
+	background: #afa;
+}
 
 select:focus {
 	outline: solid 4px black;
@@ -66,6 +69,8 @@ select:focus {
 	<a href="categories.php">Categories</a>
 	|
 	<a href="tags.php">Tags</a>
+	|
+	<a href="doubles.php">Doubles</a>
 	|
 	<a href="import-ing.php">Import ING</a>
 	|

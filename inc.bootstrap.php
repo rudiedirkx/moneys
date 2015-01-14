@@ -31,6 +31,10 @@ if ( !$db ) {
 	exit("<p>No db...</p>");
 }
 
+// Screw ACID, go SPEED!
+$db->execute('PRAGMA synchronous=OFF');
+$db->execute('PRAGMA journal_mode=OFF');
+
 // Peripherals
 require 'inc.functions.php';
 require 'inc.transaction.php';

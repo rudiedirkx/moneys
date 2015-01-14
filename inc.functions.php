@@ -1,5 +1,30 @@
 <?php
 
+function get_transaction_hash($transaction) {
+	$transaction = (array)$transaction;
+	$hashable = array_intersect_key($transaction, array_flip(array('date', 'type', 'account', 'amount')));
+	$hashable['amount'] = (float)$hashable['amount'];
+	$hashable['account'] = get_safe_accountno($hashable['account']);
+	$hashable['sumdesc'] = mb_strtolower(preg_replace('#\s#', '', $transaction['summary'] . ' ' . $transaction['description']));
+	ksort($hashable);
+	return md5(serialize($hashable));
+}
+
+function get_safe_accountno($account) {
+	$account = trim($account);
+	if ( !$account ) {
+		return '';
+	}
+
+	// IBAN, use only the number
+	if ( preg_match('#^[a-z]{2}\d{2}[a-z]{4}(\d{10,14})#i', $account, $match) ) {
+		return ltrim($match[1], '0');
+	}
+
+	// Not IBAN, use all of it, except leading 0s.
+	return ltrim($account, '0');
+}
+
 function sort_opposite( $column, $current ) {
 	// Reverse direction
 	if ( $column == ltrim($current, '-') ) {
@@ -62,12 +87,14 @@ function do_redirect( $path = false, $query = null ) {
 	exit;
 }
 
-function html_options( $options, $selected = null, $empty = '' ) {
+function html_options( $options, $selected = null, $empty = '', $datalist = false ) {
 	$html = '';
-	$empty && $html .= '<option value>' . $empty;
+	$empty && $html .= '<option value="">' . $empty . '</option>';
 	foreach ( $options AS $value => $label ) {
 		$isSelected = $value == $selected ? ' selected' : '';
-		$html .= '<option value="' . html($value) . '"' . $isSelected . '>' . html($label);
+		$value = $datalist ? html($label) : html($value);
+		$label = $datalist ? '' : html($label);
+		$html .= '<option value="' . $value . '"' . $isSelected . '>' . $label . '</option>';
 	}
 	return $html;
 }
@@ -95,4 +122,49 @@ function csv_read_doc( $data, $withHeader = true, $keepCols = array() ) {
 	}, explode("\n", trim($data)));
 	$withHeader and $csv = array_slice($csv, 1);
 	return $csv;
+}
+
+function csv_escape( $val ) {
+	return str_replace('"', '""', $val);
+}
+
+function csv_row( $data ) {
+	return '"' . implode('","', array_map('csv_escape', $data)) . '"' . "\r\n";
+}
+
+function csv_cols( $data ) {
+	$cols = array();
+	foreach ( $data as $i => $name ) {
+		$cols[] = !is_int($i) && is_callable($name) ? $i : $name;
+	}
+	return $cols;
+}
+
+function csv_rows( $data ) {
+	return implode(array_map('csv_row', $data));
+}
+
+function csv_header( $filename = '' ) {
+	header('Content-Type: text/plain; charset=utf-8');
+
+	if ( $filename ) {
+		header('Content-Disposition: attachment; filename="' . $filename . '"');
+	}
+}
+
+function csv_file( $data, $cols, $filename = '' ) {
+	csv_header($filename);
+
+	echo csv_row(csv_cols($cols));
+	foreach ( $data AS $row ) {
+		$data = array();
+		foreach ( $cols as $i => $name ) {
+			$data[] = !is_int($i) && is_callable($name) ? $name($row) : $row->$name;
+		}
+		echo csv_row($data);
+	}
+
+	if ( $filename ) {
+		exit;
+	}
 }

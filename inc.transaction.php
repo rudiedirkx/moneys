@@ -2,6 +2,26 @@
 
 class Transaction extends db_generic_record {
 
+	static public $_categories = array();
+
+	public $tags = array();
+
+	function get_category() {
+		return @self::$_categories[ (int)$this->category_id ] ?: '';
+	}
+
+	function get_tags_as_string() {
+		return implode(' ', $this->tags);
+	}
+
+	function get_sumdesc() {
+		return preg_replace('/ {2,}/', '   ', $this->summary . ' ' . $this->description);
+	}
+
+	function get_simple_uniq() {
+		return $this->date . ':' . $this->account . ':' . $this->amount;
+	}
+
 	function get_month() {
 		return substr($this->date, 0, 7);
 	}
@@ -46,7 +66,7 @@ class Transaction extends db_generic_record {
 		$classes = array(
 			$this->amount > 0 ? 'dir-in' : 'dir-out',
 		);
-		$this->new_month and $classes[] = 'new-month';
+		$this->new_group and $classes[] = 'new-group';
 		return $classes;
 	}
 

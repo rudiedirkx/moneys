@@ -23,13 +23,13 @@ if ( isset($_FILES['csv']) ) {
 			'date' => substr($tr['Datum'], 0, 4) . '-' . substr($tr['Datum'], 4, 2) . '-' . substr($tr['Datum'], 6, 2),
 			'summary' => trim($tr['Naam / Omschrijving']),
 			'description' => trim($tr['Mededelingen']),
-			// 'direction' => $dir,
 			'type' => @$types[ trim($tr['Code']) ],
 			'account' => preg_replace('#\s+#', '', trim($tr['Tegenrekening'])) ?: null,
 			'amount' => $dir * (float)strtr($tr['Bedrag (EUR)'], array('.' => '', ',' => '.')),
 		);
-		ksort($record);
-		$record['hash'] = md5(serialize($record));
+
+		$record['hash'] = get_transaction_hash($record);
+
 		return $record;
 	}, $data);
 // print_r($records);
@@ -44,6 +44,7 @@ if ( isset($_FILES['csv']) ) {
 // exit;
 
 	$db->begin();
+
 	$inserts = 0;
 	foreach ( $records as $record ) {
 		if ( !isset($existingHashes[ $record['hash'] ]) ) {
@@ -51,9 +52,10 @@ if ( isset($_FILES['csv']) ) {
 			$inserts++;
 		}
 	}
+
 	$db->commit();
 
-	var_dump($inserts);
+	echo "Saved " . $inserts . " of " . count($records) . " (" . (count($records) - $inserts) . " doubles)\n";
 
 	exit;
 }

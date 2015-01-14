@@ -3,8 +3,6 @@
 require 'inc.bootstrap.php';
 
 if ( isset($_POST['parties']) ) {
-	header('Content-type: text/plain');
-
 	foreach ( $_POST['parties'] as $id => $party ) {
 		$name = trim($party['name']);
 
