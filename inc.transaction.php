@@ -4,7 +4,18 @@ class Transaction extends db_generic_record {
 
 	static public $_categories = array();
 
-	public $tags = array();
+	// public $tags = array();
+
+	function get_tags() {
+		global $db;
+		return $db->fetch_fields('
+			SELECT t.id, t.tag
+			FROM tagged g
+			JOIN tags t ON (t.id = g.tag_id)
+			WHERE g.transaction_id = ?
+			ORDER BY t.tag ASC
+		', array($this->id));
+	}
 
 	function get_category() {
 		return @self::$_categories[ (int)$this->category_id ] ?: '';

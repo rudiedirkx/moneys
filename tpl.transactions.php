@@ -94,12 +94,14 @@ body:not(.hide-sumdesc) .show-sumdesc {
 				?>
 				<tr class="<?= implode(' ', $tr->classes) ?>">
 					<th class="col-id">
-						<label for="tr-<?= $tr->id ?>"><?= $tr->id ?></label>
+						<a href="transaction.php?id=<?= $tr->id ?>"><?= $tr->id ?></a>
 					</th>
 					<td class="col-cb">
 						<input type="checkbox" name="check[]" value="<?= $tr->id ?>" class="cb" id="tr-<?= $tr->id ?>" onclick="onCheck()" />
 					</td>
-					<td class="date" nowrap><?= $tr->date ?></td>
+					<td class="date" nowrap>
+						<label for="tr-<?= $tr->id ?>"><?= $tr->date ?></label>
+					</td>
 					<td class="amount" nowrap>
 						<label for="tr-<?= $tr->id ?>"><?= $tr->formatted_amount ?></label>
 					</td>
@@ -112,7 +114,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 						<select name="category[<?= $tr->id ?>]"><?= html_options($categories, $tr->selected_category_id, '--') ?></select>
 					</td>
 					<td>
-						<label for="tr-<?= $tr->id ?>"><?= implode('<br>', $tr->tags) ?: '<span class="no-tags">no tags</span>' ?></label>
+						<label for="tr-<?= $tr->id ?>"><?= isset($tr->tags) ? implode('<br>', $tr->tags) : '<span class="no-tags">no tags</span>' ?></label>
 					</td>
 				</tr>
 			<? endforeach ?>

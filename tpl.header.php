@@ -32,6 +32,16 @@ thead td {
 	text-align: center;
 	font-weight: bold;
 }
+select.error,
+input.error,
+textarea.error {
+	border-color: red;
+	outline: solid 1px red;
+}
+
+body > .main-menu {
+	margin-top: 0;
+}
 
 .c {
 	text-align: center;
@@ -64,7 +74,7 @@ select:focus {
 
 <body>
 
-<p>
+<p class="main-menu">
 	<a href="index.php">Overview</a>
 	|
 	<a href="parties.php">Parties</a>

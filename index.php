@@ -53,7 +53,7 @@ if ( !empty($_GET['year']) ) {
 }
 if ( !empty($_GET['search']) ) {
 	$q = '%' . $_GET['search'] . '%';
-	$conditions[] = $db->replaceholders('(description LIKE ? OR summary LIKE ?)', array($q, $q));
+	$conditions[] = $db->replaceholders('(description LIKE ? OR summary LIKE ? OR account LIKE ?)', array($q, $q, $q));
 }
 // print_r($conditions);
 $condSql = $conditions ? '(' . implode(' AND ', $conditions) . ') AND' : '';
@@ -69,10 +69,12 @@ $sortColumn = ltrim($sort, '-');
 
 $pager = $conditions ? '' : 'LIMIT ' . $perPage . ' OFFSET ' . $offset;
 $query = $condSql . ' 1 ORDER BY ' . $sortColumn . ' ' . $sortDirection . ', ABS(amount) DESC ' . $pager;
+// echo $query . "\n";
 $transactions = $db->select('transactions', $query, null, 'Transaction')->all();
 // print_r($transactions);
 
 $transactions = array_reduce($transactions, function($transactions, $transaction) {
+	$transaction->tags = array();
 	return $transactions + array($transaction->id => $transaction);
 }, array());
 // print_r($transactions);
@@ -117,7 +119,7 @@ require 'tpl.header.php';
 		Tag: <select name="tag"><?= html_options($tags, @$_GET['tag'], '-- all') ?></select>
 		Amount: <input name="min" value="<?= @$_GET['min'] ?>" size="4" /> - <input name="max" value="<?= @$_GET['max'] ?>" size="4" />
 		Year: <select name="year"><?= html_options($years, @$_GET['year'], '-- all') ?></select>
-		Search: <input type="search" name="search" value="<?= @$_GET['search'] ?>" />
+		Search: <input type="search" name="search" value="<?= @$_GET['search'] ?>" placeholder="Summary, description, account no..." />
 		<button>&gt;&gt;</button>
 	</p>
 </form>

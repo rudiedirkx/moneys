@@ -36,7 +36,7 @@ $categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC'
 
 require 'tpl.header.php';
 
-$parties[] = (object)array('id' => '', 'name' => '');
+$parties[] = (object)array('id' => '0', 'name' => '');
 
 ?>
 <style>
@@ -47,7 +47,9 @@ $parties[] = (object)array('id' => '', 'name' => '');
 	border: 0;
 	border-bottom: solid 1px #aaa;
 	background-color: transparent;
-	width: 500px;
+	width: 400px;
+	padding-left: 10px;
+	padding-right: 10px;
 }
 </style>
 
@@ -66,13 +68,11 @@ $parties[] = (object)array('id' => '', 'name' => '');
 		<tbody>
 			<? foreach ($parties as $party): ?>
 				<tr>
-					<td><input name="parties[<?= $party->id ?: 0 ?>][name]" value="<?= html($party->name) ?>" placeholder="Party name" /></td>
-					<? if ($party->id): ?>
-						<td class="auto">
-							#<input name="parties[<?= $party->id ?>][auto_sumdesc]" value="<?= $party->auto_sumdesc ?>" />#i
-						</td>
-						<td><select name="parties[<?= $party->id ?>][category_id]"><?= html_options($categories, $party->category_id, '--') ?></select></td>
-					<? endif ?>
+					<td><input name="parties[<?= $party->id ?>][name]" value="<?= html($party->name) ?>" placeholder="Party name" /></td>
+					<td class="auto">
+						#<input name="parties[<?= $party->id ?>][auto_sumdesc]" value="<?= @$party->auto_sumdesc ?>" />#i
+					</td>
+					<td><select name="parties[<?= $party->id ?>][category_id]"><?= html_options($categories, @$party->category_id, '--') ?></select></td>
 				</tr>
 			<? endforeach ?>
 		<tbody>

@@ -104,16 +104,24 @@ $months = cache_months();
 				$num = $db->count('transactions', array('category_id' => $cat->id ?: null));
 				?>
 				<tr>
-					<td><input name="categories[<?= $cat->id ?: 0 ?>][name]" value="<?= html($cat->name) ?>" /></td>
-					<td class="amount"><?= html_money(@$spendings[$cat->id] ?: 0, true) ?></td>
-					<td><a href="index.php?category=<?= $cat->id ?: -1 ?>"><?= $num ?></a></td>
+					<td>
+						<input name="categories[<?= $cat->id ?>][name]" value="<?= html($cat->name) ?>" placeholder="New category..." />
+					</td>
+					<td class="amount">
+						<?= html_money(@$spendings[$cat->id] ?: 0, true) ?>
+					</td>
+					<td>
+						<a href="index.php?category=<?= $cat->id ?: -1 ?>"><?= $num ?></a>
+					</td>
 					<? foreach ($spendingsPerYear as $year => $data):
 						$expanded = $expandYear == $year;
 						?>
 						<td class="amount <?= $expanded ? 'expanded' : '' ?>"><a href="index.php?category=<?= $cat->id ?>&year=<?= $year ?>"><?= html_money(@$data[$cat->id], true) ?></a></td>
 						<?if ($expanded): ?>
 							<? foreach ($spendingsPerMonth as $month => $data): ?>
-								<td class="expanded"><a href="index.php?category=<?= $cat->id ?>&year=<?= $month ?>"><?= html_money(@$data[$cat->id], true) ?></a></td>
+								<td class="expanded">
+									<a href="index.php?category=<?= $cat->id ?>&year=<?= $month ?>"><?= html_money(@$data[$cat->id], true) ?></a>
+								</td>
 							<? endforeach ?>
 						<? endif ?>
 					<? endforeach ?>
