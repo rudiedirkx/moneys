@@ -46,10 +46,17 @@ if ( isset($_FILES['csv']) ) {
 	$db->begin();
 
 	$inserts = 0;
+	$new = array();
 	foreach ( $records as $record ) {
 		if ( !isset($existingHashes[ $record['hash'] ]) ) {
+			// Doubles in the same import are allowed. Too bad we can't differentiate =(
+			if ( isset($new[ $record['hash'] ]) ) {
+				$record['hash'] .= '-' . rand(100, 999);
+			}
+
 			$db->insert('transactions', $record);
 			$inserts++;
+			$new[ $record['hash'] ] = $record['hash'];
 		}
 	}
 
