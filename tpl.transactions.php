@@ -26,11 +26,6 @@ tr + tr.new-group th {
 	display: block;
 	text-align: center;
 }
-@media (max-width: 1000px) {
-	.col-id, .col-cb, .col-type {
-		display: none;
-	}
-}
 .hide-sumdesc .col-sumdesc,
 body:not(.hide-sumdesc) .show-sumdesc {
 	display: none;
