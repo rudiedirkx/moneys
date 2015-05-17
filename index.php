@@ -115,7 +115,7 @@ require 'tpl.header.php';
 <form action>
 	<input type="hidden" name="sort" value="<?= html($sort) ?>" />
 	<p>
-		Category: <select name="category"><?= html_options($categories, @$_GET['category'], '-- all') ?></select>
+		Category: <select name="category"><?= html_options(array('-1' => '-- none') + $categories, @$_GET['category'], '-- all') ?></select>
 		Tag: <select name="tag"><?= html_options($tags, @$_GET['tag'], '-- all') ?></select>
 		Amount: <input name="min" value="<?= @$_GET['min'] ?>" size="4" /> - <input name="max" value="<?= @$_GET['max'] ?>" size="4" />
 		Year: <select name="year"><?= html_options($years, @$_GET['year'], '-- all') ?></select>
