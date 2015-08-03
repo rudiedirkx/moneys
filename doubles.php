@@ -16,6 +16,7 @@ $transactions = $db->fetch("
 ", 'Transaction')->all();
 
 $transactions = array_reduce($transactions, function($transactions, $transaction) {
+	$transaction->tags = array();
 	return $transactions + array($transaction->id => $transaction);
 }, array());
 
@@ -28,13 +29,20 @@ $tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 
 $tagged = $db->select('tagged', array('transaction_id' => $tids))->all();
 foreach ( $tagged as $record ) {
-	$transactions[ $record->transaction_id ]->tags[] = $tags[ $record->tag_id ];
+	if ( $tags[ $record->tag_id ] == 'undouble' ) {
+		unset($transactions[ $record->transaction_id ]);
+	}
+	else if ( isset($transactions[ $record->transaction_id ]) ) {
+		$transactions[ $record->transaction_id ]->tags[] = $tags[ $record->tag_id ];
+	}
 }
 
 require 'tpl.header.php';
 
 ?>
 <h1>Potential doubles</h1>
+
+<p>Add the tag <code>"undouble"</code> to ignore transactions. They won't show up here anymore.</p>
 <?php
 
 $show_pager = false;

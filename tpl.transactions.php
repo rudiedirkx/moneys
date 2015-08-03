@@ -32,7 +32,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 }
 </style>
 
-<form method="post" action>
+<form method="post" action="index.php">
 	<table>
 		<thead>
 			<? if ($show_pager): ?>
