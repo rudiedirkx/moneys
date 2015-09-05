@@ -1,5 +1,9 @@
 <?php
 
+function do_404() {
+	header('HTTP/1.1 404 Not found');
+}
+
 function get_transaction_hash($transaction) {
 	$transaction = (array)$transaction;
 	$hashable = array_intersect_key($transaction, array_flip(array('date', 'type', 'account', 'amount')));

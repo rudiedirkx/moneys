@@ -4,12 +4,22 @@ require 'inc.bootstrap.php';
 
 $id = (int)$_GET['id'];
 $transaction = $db->select('transactions', compact('id'), null, 'Transaction')->first();
+if ( !$transaction ) {
+	do_404();
+	exit('Transaction not found.');
+}
 
+$subTransactions = $db->select('transactions', array('parent_transaction_id' => $id), null, 'Transaction')->all();
+$hashClashes = array();
+
+// DELETE
 if ( @$_POST['_action'] == 'delete' ) {
 	$db->delete('transactions', compact('id'));
 
 	return do_redirect('index');
 }
+
+// SAVE
 else if ( isset($_POST['category_id'], $_POST['tags']) ) {
 	// Properties
 	$db->update('transactions', array(
@@ -18,43 +28,121 @@ else if ( isset($_POST['category_id'], $_POST['tags']) ) {
 
 	// Tags
 	$tags = array_filter(explode(' ', mb_strtolower(trim($_POST['tags']))));
-	$db->begin();
-	$db->delete('tagged', array('transaction_id' => $id));
-	foreach ($tags as $tag) {
-		$tagId = $db->select_one('tags', 'id', compact('tag'));
-		if ( !$tagId ) {
-			$db->insert('tags', compact('tag'));
-			$tagId = $db->insert_id();
-		}
-
-		$db->insert('tagged', array(
-			'transaction_id' => $id,
-			'tag_id' => $tagId,
-		));
-	}
-	$db->commit();
+	$transaction->saveTags($tags);
 
 	return do_redirect('transaction', compact('id'));
+}
+
+// SPLIT
+else if ( isset($_POST['amount'], $_POST['description'], $_POST['date']) ) {
+	$existingHashes = $db->select_fields('transactions', 'hash, hash', 'parent_transaction_id <> ?', array($transaction->id));
+
+	$subTransactions = $hashClashes = array();
+
+	$totalAmount = 0;
+	foreach ($_POST['amount'] as $i => $amount) {
+		$description = $_POST['description'][$i];
+		$date = $_POST['date'][$i];
+		$category = $_POST['category'][$i] ?: NULL;
+		$tags = $_POST['tags'][$i] ?: NULL;
+		if ( $amount && $description && $date ) {
+			$totalAmount += $amount;
+			$subTransaction = array(
+				'date' => $date,
+				'summary' => '',
+				'description' => $description,
+				'type' => 'split',
+				'account' => $transaction->account,
+				'amount' => (float)$amount,
+				'parent_transaction_id' => $transaction->id,
+				'category_id' => $category,
+				'tags' => trim(implode(' ', $transaction->tags) . ' ' . $tags),
+			);
+			$subTransaction['hash'] = get_transaction_hash($subTransaction);
+
+			if ( isset($existingHashes[ $subTransaction['hash'] ]) ) {
+				$hashClashes[$i] = $i;
+			}
+			$existingHashes[ $subTransaction['hash'] ] = $subTransaction['hash'];
+
+			$subTransactions[] = $subTransaction;
+		}
+	}
+
+	$error = false;
+
+	if ( $totalAmount != $transaction->amount ) {
+		$error = true;
+		echo "<p class='error'>Totals don't match. Transaction says `" . number_format($transaction->amount, 2) . "`, your sub transactions say `" . number_format($totalAmount, 2) . "`.</p>";
+		echo "\n\n";
+	}
+
+	if ( $hashClashes ) {
+		$error = true;
+		echo "<p class='error'>All transactions must be unique. Manually add serial numbers to descriptions to make them unique.</p>";
+		echo "\n\n";
+	}
+
+	if ( !$error ) {
+		$db->begin();
+
+		// Save parent
+		$db->update('transactions', array(
+			'ignore' => 1,
+		), array('id' => $transaction->id));
+
+		// Delete children
+		$db->delete('transactions', array('parent_transaction_id' => $transaction->id));
+
+		// Save children
+		foreach ( $subTransactions as $subTransaction ) {
+			Transaction::insert($subTransaction);
+		}
+
+		$db->commit();
+
+		return do_redirect('index');
+	}
 }
 
 require 'tpl.header.php';
 
 $categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
+$tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 
 ?>
 <style>
+p.error {
+	margin: 2em 0;
+	color: red;
+	font-weight: bold;
+}
+
 button + button {
 	margin-left: .5em;
 }
 button.delete {
-	background-color: red;
-	border-color: red;
+	background-color: #d00;
+	border-color: #d00;
 	color: white;
+}
+
+#split .amount {
+	width: 5em;
+}
+#split .description {
+	width: 22em;
+}
+#split .date {
+	width: 11em;
+}
+
+.subTransaction.error input {
+	border-color: red;
 }
 </style>
 
-<form method="post" action>
-
+<form id="edit" method="post" action="">
 	<table border="1">
 		<tr>
 			<th>Date</th>
@@ -102,16 +190,75 @@ button.delete {
 		<button name="_action" value="save">Save</button>
 		<button name="_action" value="delete" class="delete">Delete</button>
 	</p>
-
 </form>
+
+<? if (!$transaction->parent_transaction_id): ?>
+	<h2>Split transaction</h2>
+
+	<form id="split" method="post" action="">
+
+		<table border="1">
+			<thead>
+				<tr>
+					<th>Amount</th>
+					<th>Description</th>
+					<th>Date</th>
+					<th>Category</th>
+					<th>Tags</th>
+				</tr>
+			</thead>
+			<tbody>
+				<? $subTransactions[] = array('date' => $transaction->date) ?>
+				<? foreach ( @$subTransactions ?: array_fill(0, 10, array('date' => $transaction->date)) as $i => $subTransaction ): ?>
+					<tr class="subTransaction <?= isset($hashClashes[$i]) ? 'error' : '' ?>">
+						<td><input name="amount[]" class="amount" type="number" step="any" value="<?= number_format(@$subTransaction['amount'] ?: 0, 2) ?>" /></td>
+						<td><input name="description[]" class="description" value="<?= html(@$subTransaction['description']) ?>" /></td>
+						<td><input name="date[]" class="date" type="date" value="<?= html(@$subTransaction['date']) ?>" /></td>
+						<td><select name="category[]" class="category"><?= html_options($categories, @$subTransaction['category_id'], '--') ?></select></td>
+						<td><input name="tags[]" class="tags" list="data-tags" value="<?= html(implode(' ', (array)@$subTransaction['tags'])) ?>" /></td>
+					</tr>
+				<? endforeach ?>
+			</tbody>
+		</table>
+
+		<datalist id="data-tags"><?= html_options($tags, '', '', true) ?></datalist>
+
+		<p>
+			<button name="_action" value="split">Split</button>
+		</p>
+	</form>
+<? endif ?>
 
 <script src="rjs-custom.js"></script>
 <script>
-$$('button.delete').on('click', function(e) {
+// Confirm deletion
+$$('#edit button.delete').on('click', function(e) {
 	if ( !confirm('Really really?') ) {
 		e.preventDefault();
 	}
 });
+
+// Add more split rows
+var $lastTR = $('split').getElement('tbody').getElement('.subTransaction:last-child').cloneNode(true);
+// console.log($lastTR.parentNode);
+$('split').on('input', function(e) {
+	if ( e.target.firstAncestor('tr').matches(':last-child') ) {
+		$('split').getElement('tbody').append($lastTR.cloneNode(true));
+	}
+});
+
+// Validate split total
+// $('split').on('submit', function(e) {
+// 	var total = this.getElements('input.amount').reduce(function(total, el) {
+// 		return total + parseFloat(el.value);
+// 	}, 0);
+// 	total = Math.round(total * 100) / 100;
+
+// 	if ( total != <?= (float) $transaction->amount ?> ) {
+// 		alert("Totals don't match. Transaction says `<?= (float) $transaction->amount ?>`, your sub transactions say `" + total + "`.");
+// 		e.preventDefault();
+// 	}
+// });
 </script>
 <?php
 

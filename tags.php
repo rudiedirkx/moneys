@@ -9,12 +9,19 @@ $tags = $db->fetch('
 	FROM tags ta
 	JOIN tagged tt ON tt.tag_id = ta.id
 	JOIN transactions tr ON tr.id = tt.transaction_id
+	WHERE tr.ignore = 0
 	GROUP BY ta.id
 	ORDER BY tag ASC
 ')->all();
 // print_r($tags);
 
-$spendings = $db->fetch_fields('SELECT ta.tag_id, SUM(tr.amount) amount FROM transactions tr JOIN tagged ta ON ta.transaction_id = tr.id GROUP BY ta.tag_id');
+$spendings = $db->fetch_fields('
+	SELECT ta.tag_id, SUM(tr.amount) amount
+	FROM transactions tr
+	JOIN tagged ta ON ta.transaction_id = tr.id
+	WHERE tr.ignore = 0
+	GROUP BY ta.tag_id
+');
 // print_r($spendings);
 
 $spendingsPerYear = array_reduce($db->fetch('
@@ -22,6 +29,7 @@ $spendingsPerYear = array_reduce($db->fetch('
 	FROM tags ta
 	JOIN tagged tt ON tt.tag_id = ta.id
 	JOIN transactions tr ON tr.id = tt.transaction_id
+	WHERE tr.ignore = 0
 	GROUP BY tag, year
 	ORDER BY year DESC
 ')->all(), function($result, $record) {
@@ -36,7 +44,7 @@ if ( $expandYear ) {
 		FROM tags ta
 		JOIN tagged tt ON tt.tag_id = ta.id
 		JOIN transactions tr ON tr.id = tt.transaction_id
-		WHERE date LIKE ?
+		WHERE ignore = 0 AND date LIKE ?
 		GROUP BY tag, month
 		ORDER BY month DESC
 	', array($expandYear . '-_%'))->all(), function($result, $record) {

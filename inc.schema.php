@@ -14,6 +14,8 @@ return array(
 			'amount' => array('null' => false, 'type' => 'real'),
 			'category_id' => array('unsigned' => true, 'null' => true),
 			'other_party_id' => array('unsigned' => true, 'null' => true),
+			'parent_transaction_id' => array('unsigned' => true, 'null' => true),
+			'ignore' => array('unsigned' => true, 'default' => 0),
 		),
 		'indexes' => array(
 			'hash' => 'hash',
@@ -22,6 +24,7 @@ return array(
 			// 'direction' => 'direction',
 			'category_id' => 'category_id',
 			'other_party_id' => 'other_party_id',
+			'parent_transaction_id' => 'parent_transaction_id',
 		),
 	),
 	'parties' => array(

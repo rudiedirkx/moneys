@@ -6,6 +6,54 @@ class Transaction extends db_generic_record {
 
 	// public $tags = array();
 
+	static function insert( $data ) {
+		global $db;
+
+		// Collect tags
+		$tags = @$data['tags'] ?: array();
+		unset($data['tags']);
+		if ( !is_array($tags) ) {
+			$tags = array_filter(explode(' ', $tags));
+		}
+
+		// Create transaction record
+		$db->insert('transactions', $data);
+		$transaction = $db->select('transactions', array('id' => $db->insert_id()), null, 'Transaction')->first();
+
+		// Save tags
+		if ( $tags ) {
+			$transaction->saveTags($tags, false);
+		}
+
+		return $transaction;
+	}
+
+	function saveTags( $tags, $dbTransaction = true ) {
+		global $db;
+
+		if ( $dbTransaction ) {
+			$db->begin();
+		}
+
+		$db->delete('tagged', array('transaction_id' => $this->id));
+		foreach ( array_unique($tags) as $tag ) {
+			$tagId = $db->select_one('tags', 'id', compact('tag'));
+			if ( !$tagId ) {
+				$db->insert('tags', compact('tag'));
+				$tagId = $db->insert_id();
+			}
+
+			$db->insert('tagged', array(
+				'transaction_id' => $this->id,
+				'tag_id' => $tagId,
+			));
+		}
+
+		if ( $dbTransaction ) {
+			$db->commit();
+		}
+	}
+
 	function get_tags() {
 		global $db;
 		return $db->fetch_fields('

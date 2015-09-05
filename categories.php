@@ -36,13 +36,13 @@ $expandYear = (int)@$_GET['year'];
 $categories = $db->select('categories', '1 ORDER BY name ASC')->all();
 // print_r($categories);
 
-$spendings = $db->fetch_fields('SELECT category_id, SUM(amount) FROM transactions GROUP BY category_id');
+$spendings = $db->fetch_fields('SELECT category_id, SUM(amount) FROM transactions WHERE ignore = 0 GROUP BY category_id');
 // print_r($spendings);
 
 $spendingsPerYear = array_reduce($db->fetch('
 	SELECT category_id, SUBSTR(date, 1, 4) year, SUM(amount) amount
 	FROM transactions
-	WHERE category_id IS NOT NULL
+	WHERE ignore = 0 AND category_id IS NOT NULL
 	GROUP BY category_id, year
 	ORDER BY year DESC
 ')->all(), function($result, $record) {
@@ -55,7 +55,7 @@ if ( $expandYear ) {
 	$spendingsPerMonth = array_reduce($db->fetch('
 		SELECT category_id, SUBSTR(date, 1, 7) month, SUM(amount) amount
 		FROM transactions
-		WHERE category_id IS NOT NULL AND date LIKE ?
+		WHERE ignore = 0 AND category_id IS NOT NULL AND date LIKE ?
 		GROUP BY category_id, month
 		ORDER BY month DESC
 	', array($expandYear . '-_%'))->all(), function($result, $record) {
@@ -101,7 +101,7 @@ $months = cache_months();
 		</thead>
 		<tbody>
 			<? foreach ($categories as $cat):
-				$num = $db->count('transactions', array('category_id' => $cat->id ?: null));
+				$num = $db->count('transactions', array('ignore' => 0, 'category_id' => $cat->id ?: null));
 				?>
 				<tr>
 					<td>

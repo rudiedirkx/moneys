@@ -7,11 +7,13 @@ $transactions = $db->fetch("
 	FROM (
 		SELECT date, account, amount, COUNT(1) AS num
 		FROM transactions
+		WHERE ignore = 0
 		GROUP BY date, account, amount
 		HAVING num > 1
 	) x
 	JOIN transactions t
 		ON (x.date = t.date AND COALESCE(x.account, '') = COALESCE(t.account, '') AND x.amount = t.amount)
+	WHERE t.ignore = 0
 	ORDER BY date DESC, account, amount
 ", 'Transaction')->all();
 

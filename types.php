@@ -5,6 +5,7 @@ require 'inc.bootstrap.php';
 $types = $db->fetch('
 	SELECT type, SUM(amount) amount, COUNT(1) num_transactions
 	FROM transactions
+	WHERE ignore = 0
 	GROUP BY type
 	ORDER BY type ASC
 ')->all();
@@ -13,6 +14,7 @@ $types = $db->fetch('
 $spendingsPerYear = array_reduce($db->fetch('
 	SELECT type, SUBSTR(date, 1, 4) year, SUM(amount) amount
 	FROM transactions
+	WHERE ignore = 0
 	GROUP BY type, year
 	ORDER BY year DESC
 ')->all(), function($result, $record) {

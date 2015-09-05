@@ -103,7 +103,12 @@ body:not(.hide-sumdesc) .show-sumdesc {
 					<td class="col-type" nowrap><?= $tr->type ?></td>
 					<td class="col-sumdesc">
 						<div class="summary"><?= html($tr->summary) ?> <? if ($tr->account): ?>(<?= html($tr->account) ?>)<? endif ?></div>
-						<div class="description"><?= html($tr->description) ?></div>
+						<div class="description">
+							<? if ($tr->parent_transaction_id): ?>
+								<a title="Open parent transaction" href="transaction.php?id=<?= $tr->parent_transaction_id ?>">&lt;&lt;</a>
+							<? endif ?>
+							<?= html($tr->description) ?>
+						</div>
 					</td>
 					<td class="category <? if (!$tr->category_id): ?>empty<? endif ?>">
 						<select name="category[<?= $tr->id ?>]"><?= html_options($categories, $tr->selected_category_id, '--') ?></select>

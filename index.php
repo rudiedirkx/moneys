@@ -59,7 +59,7 @@ if ( !empty($_GET['search']) ) {
 $condSql = $conditions ? '(' . implode(' AND ', $conditions) . ') AND' : '';
 
 $offset = $page * $perPage;
-$totalRecords = $db->count('transactions', $condSql . ' 1');
+$totalRecords = $db->count('transactions', $condSql . ' 1 AND ignore = 0');
 $pages = ceil($totalRecords / $perPage);
 
 $sort = isset($_GET['sort']) ? preg_replace('#[^\w-]#', '', $_GET['sort']) : '-date';
@@ -68,7 +68,7 @@ $sortDirection = $sort[0] == '-' ? 'DESC' : 'ASC';
 $sortColumn = ltrim($sort, '-');
 
 $pager = $conditions ? '' : 'LIMIT ' . $perPage . ' OFFSET ' . $offset;
-$query = $condSql . ' 1 ORDER BY ' . $sortColumn . ' ' . $sortDirection . ', ABS(amount) DESC ' . $pager;
+$query = $condSql . ' 1 AND ignore = 0 ORDER BY ' . $sortColumn . ' ' . $sortDirection . ', ABS(amount) DESC ' . $pager;
 // echo $query . "\n";
 $transactions = $db->select('transactions', $query, null, 'Transaction')->all();
 // print_r($transactions);
