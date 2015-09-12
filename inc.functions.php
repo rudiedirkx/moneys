@@ -1,5 +1,48 @@
 <?php
 
+function do_auth() {
+	$ips = preg_split('#\s+#', trim(MONEYS_LOCAL_IPS));
+	$regex = '#^(' . str_replace('.', '\\.', implode('|', $ips)) . ')#';
+	if ( preg_match($regex, $_SERVER['REMOTE_ADDR']) ) {
+		return true;
+	}
+
+	session_start();
+
+	$auth = trim(@$_SESSION['moneys']['auth']);
+	if ( $auth ) {
+		$auths = preg_split('#\s+#', trim(MONEYS_LOCAL_AUTHS));
+		if ( in_array($auth, $auths, true) ) {
+			return true;
+		}
+	}
+
+	$user = trim(@$_POST['user']);
+	$pass = trim(@$_POST['pass']);
+	if ( $user && $pass ) {
+		$auth = $user . ':' . crypt($pass, base64_encode($user . ':' . $pass));
+		$_SESSION['moneys']['auth'] = $auth;
+
+		header('Location: ' . $_SERVER['REQUEST_URI']);
+		exit;
+	}
+
+	echo '<p>Only if you know the secret handshake...</p>' . "\n";
+	if ( $auth ) {
+		echo '<p style="color: red">Wrong secret handshake!</p>' . "\n";
+	}
+	echo '<form method="post" action="" novalidate>' . "\n";
+	echo '<p>User: <input type="email" name="user" /></p>' . "\n";
+	echo '<p>Pass: <input type="password" name="pass" /></p>' . "\n";
+	echo '<p><button>Log in</button></p>' . "\n";
+	echo '</form>' . "\n";
+	exit;
+}
+
+function do_403() {
+	header('HTTP/1.1 403 Access denied');
+}
+
 function do_404() {
 	header('HTTP/1.1 404 Not found');
 }
