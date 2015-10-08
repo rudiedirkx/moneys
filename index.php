@@ -14,7 +14,12 @@ if ( isset($_POST['check']) ) {
 
 		$db->begin();
 		foreach ( $_POST['check'] as $transaction_id ) {
-			$db->insert('tagged', compact('tag_id', 'transaction_id'));
+			try {
+				$db->insert('tagged', compact('tag_id', 'transaction_id'));
+			}
+			catch (Exception $ex) {
+				// Assume this is a duplicity error, and ignore it.
+			}
 		}
 		$db->commit();
 	}
@@ -53,7 +58,7 @@ if ( !empty($_GET['year']) ) {
 }
 if ( !empty($_GET['search']) ) {
 	$q = '%' . $_GET['search'] . '%';
-	$conditions[] = $db->replaceholders('(description LIKE ? OR summary LIKE ? OR account LIKE ?)', array($q, $q, $q));
+	$conditions[] = $db->replaceholders('(description LIKE ? OR summary LIKE ? OR notes LIKE ? OR account LIKE ?)', array($q, $q, $q, $q));
 }
 // print_r($conditions);
 $condSql = $conditions ? '(' . implode(' AND ', $conditions) . ') AND' : '';

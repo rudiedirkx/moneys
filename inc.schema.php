@@ -5,10 +5,10 @@ return array(
 		'columns' => array(
 			'id' => array('pk' => true),
 			'hash' => array('unique' => true),
-			'date' => array('null' => false),
-			'summary' => array('null' => false),
-			'description' => array('null' => false),
-			// 'direction' => array('null' => false),
+			'date' => array('null' => false, 'default' => ''),
+			'summary' => array('null' => false, 'default' => ''),
+			'description' => array('null' => false, 'default' => ''),
+			// 'direction' => array('null' => false, 'default' => ''),
 			'type' => array('null' => true),
 			'account' => array('null' => true),
 			'amount' => array('null' => false, 'type' => 'real'),
@@ -16,6 +16,7 @@ return array(
 			'other_party_id' => array('unsigned' => true, 'null' => true),
 			'parent_transaction_id' => array('unsigned' => true, 'null' => true),
 			'ignore' => array('unsigned' => true, 'default' => 0),
+			'notes' => array('null' => false, 'default' => ''),
 		),
 		'indexes' => array(
 			'hash' => 'hash',

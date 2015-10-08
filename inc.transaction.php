@@ -54,6 +54,15 @@ class Transaction extends db_generic_record {
 		}
 	}
 
+	function get_notes_summary() {
+		if ( $this->notes ) {
+			$notes = preg_split('#[\r\n]+#', trim($this->notes));
+			return $notes[0];
+		}
+
+		return '';
+	}
+
 	function get_tags() {
 		global $db;
 		return $db->fetch_fields('

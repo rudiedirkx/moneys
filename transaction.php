@@ -20,10 +20,11 @@ if ( @$_POST['_action'] == 'delete' ) {
 }
 
 // SAVE
-else if ( isset($_POST['category_id'], $_POST['tags']) ) {
+else if ( isset($_POST['category_id'], $_POST['notes'], $_POST['tags']) ) {
 	// Properties
 	$db->update('transactions', array(
 		'category_id' => $_POST['category_id'] ?: null,
+		'notes' => trim($_POST['notes']),
 	), compact('id'));
 
 	// Tags
@@ -49,7 +50,7 @@ else if ( isset($_POST['amount'], $_POST['description'], $_POST['date']) ) {
 			$totalAmount += $amount;
 			$subTransaction = array(
 				'date' => $date,
-				'summary' => '',
+				'summary' => $transaction->summary,
 				'description' => $description,
 				'type' => 'split',
 				'account' => $transaction->account,
@@ -164,11 +165,20 @@ button.delete {
 		</tr>
 		<tr>
 			<th>Summary</th>
-			<td><?= $transaction->summary ?></td>
+			<td><?= html($transaction->summary) ?></td>
 		</tr>
 		<tr>
 			<th>Description</th>
-			<td><?= $transaction->description ?></td>
+			<td><?= html($transaction->description) ?></td>
+		</tr>
+		<tr>
+			<th>
+				Personal notes<br/>
+				<div style="font-weight: normal; margin-top: .3em">(first line will be visible on overviews)</div>
+			</th>
+			<td>
+				<textarea name="notes" rows="4" style="width: 100%; display: block"><?= html($transaction->notes) ?></textarea>
+			</td>
 		</tr>
 		<tr>
 			<th>Category</th>

@@ -21,6 +21,10 @@ tr + tr.new-group th {
 .summary {
 	font-weight: bold;
 }
+.notes {
+	font-style: italic;
+	color: #005C00; /* darker green */
+}
 .no-tags {
 	color: #ccc;
 	display: block;
@@ -103,6 +107,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 					<td class="col-type" nowrap><?= $tr->type ?></td>
 					<td class="col-sumdesc">
 						<div class="summary"><?= html($tr->summary) ?> <? if ($tr->account): ?>(<?= html($tr->account) ?>)<? endif ?></div>
+						<div class="notes"><?= html($tr->notes_summary) ?></div>
 						<div class="description">
 							<? if ($tr->parent_transaction_id): ?>
 								<a title="Open parent transaction" href="transaction.php?id=<?= $tr->parent_transaction_id ?>">&lt;&lt;</a>

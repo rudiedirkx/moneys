@@ -17,6 +17,9 @@ isset($pageTitle) or $pageTitle = substr(basename($_SERVER['PHP_SELF']), 0, -4);
 <link rel="icon" href="favicon.ico" type="image/x-icon" />
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 <style>
+* {
+	box-sizing: border-box;
+}
 table {
 	border-collapse: collapse;
 }
