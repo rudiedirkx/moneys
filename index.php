@@ -4,6 +4,7 @@ require 'inc.bootstrap.php';
 
 $perPage = 100;
 $page = (int)@$_GET['page'];
+$export = isset($_GET['export']);
 
 if ( isset($_POST['check']) ) {
 	if ( $tag = trim($_POST['add_tag']) ) {
@@ -56,12 +57,19 @@ if ( @$_GET['min'] != '' && @$_GET['max'] != '' ) {
 if ( !empty($_GET['year']) ) {
 	$conditions[] = $db->replaceholders('date LIKE ?', array($_GET['year'] . '-_%'));
 }
+if ( !empty($_GET['type']) ) {
+	$type = $_GET['type'] == -1 ? null : $_GET['type'];
+	$conditions[] = $db->stringifyConditions(array('type' => $type));
+}
 if ( !empty($_GET['search']) ) {
 	$q = '%' . $_GET['search'] . '%';
 	$conditions[] = $db->replaceholders('(description LIKE ? OR summary LIKE ? OR notes LIKE ? OR account LIKE ?)', array($q, $q, $q, $q));
 }
 // print_r($conditions);
 $condSql = $conditions ? '(' . implode(' AND ', $conditions) . ') AND' : '';
+if ( $conditions ) {
+	$perPage = 500;
+}
 
 $offset = $page * $perPage;
 $totalRecords = $db->count('transactions', $condSql . ' 1 AND ignore = 0');
@@ -72,7 +80,7 @@ $sort = isset($_GET['sort']) ? preg_replace('#[^\w-]#', '', $_GET['sort']) : '-d
 $sortDirection = $sort[0] == '-' ? 'DESC' : 'ASC';
 $sortColumn = ltrim($sort, '-');
 
-$pager = $conditions ? '' : 'LIMIT ' . $perPage . ' OFFSET ' . $offset;
+$pager = $export ? '' : 'LIMIT ' . $perPage . ' OFFSET ' . $offset;
 $query = $condSql . ' 1 AND ignore = 0 ORDER BY ' . $sortColumn . ' ' . $sortDirection . ', ABS(amount) DESC ' . $pager;
 // echo $query . "\n";
 $transactions = $db->select('transactions', $query, null, 'Transaction')->all();
@@ -109,8 +117,12 @@ foreach ( $tagged as $record ) {
 // print_r($transactions);
 
 // Export as CSV
-if ( isset($_GET['export']) ) {
-	csv_file($transactions, array('id', 'date', 'amount', 'type', 'sumdesc', 'category', 'tags_as_string'), 'moneys.csv');
+if ( $export ) {
+	csv_file(
+		$transactions,
+		array('id', 'date', 'amount', 'type', 'sumdesc', 'notes', 'category', 'tags_as_string'),
+		'moneys.csv'
+	);
 	exit;
 }
 

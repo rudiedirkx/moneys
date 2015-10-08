@@ -3,7 +3,7 @@
 require 'inc.bootstrap.php';
 
 $types = $db->fetch('
-	SELECT type, SUM(amount) amount, COUNT(1) num_transactions
+	SELECT type, SUM(ABS(amount)) amount, COUNT(1) num_transactions
 	FROM transactions
 	WHERE ignore = 0
 	GROUP BY type
@@ -12,7 +12,7 @@ $types = $db->fetch('
 // print_r($types);
 
 $spendingsPerYear = array_reduce($db->fetch('
-	SELECT type, SUBSTR(date, 1, 4) year, SUM(amount) amount
+	SELECT type, SUBSTR(date, 1, 4) year, SUM(ABS(amount)) amount
 	FROM transactions
 	WHERE ignore = 0
 	GROUP BY type, year
@@ -41,10 +41,14 @@ require 'tpl.header.php';
 		<? foreach ($types as $type): ?>
 			<tr>
 				<td><?= html($type->type ?: '?') ?></td>
-				<td class="amount"><?= html_money($type->amount, true) ?></td>
-				<td><?= $type->num_transactions ?></td>
+				<td class="amount"><?= html_money($type->amount, false) ?></td>
+				<td>
+					<a href="index.php?type=<?= $type->type ?: -1 ?>"><?= $type->num_transactions ?></a>
+				</td>
 				<? foreach ($spendingsPerYear as $year => $data): ?>
-					<td class="amount"><?= html_money(@$data[$type->type], true) ?></td>
+					<td class="amount">
+						<a href="index.php?type=<?= $type->type ?: -1 ?>&year=<?= $year ?>"><?= html_money(@$data[$type->type], false) ?></a>
+					</td>
 				<? endforeach ?>
 			</tr>
 		<? endforeach ?>

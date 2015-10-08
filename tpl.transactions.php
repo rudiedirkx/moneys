@@ -44,7 +44,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 				<tr class="pager">
 					<td colspan="8">
 						<? if ($pager): ?>
-							<a href="?page=<?= $page - 1?>">&lt;&lt;</a>
+							<a href="?<?= html_query(array('page' => $page - 1)) ?>">&lt;&lt;</a>
 							|
 						<? endif ?>
 						<?= $offset + 1 ?> - <?= $offset + count($transactions) ?> / <?= $totalRecords ?>
@@ -52,7 +52,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 							|
 							page <?= $page + 1 ?> / <?= $pages ?>
 							|
-							<a href="?page=<?= $page + 1?>">&gt;&gt;</a>
+							<a href="?<?= html_query(array('page' => $page + 1)) ?>">&gt;&gt;</a>
 						<? endif ?>
 						(<a href="?<?= $_SERVER['QUERY_STRING'] ?>&export">export</a>)
 					</td>
@@ -104,7 +104,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 					<td class="amount" nowrap>
 						<label for="tr-<?= $tr->id ?>"><?= $tr->formatted_amount ?></label>
 					</td>
-					<td class="col-type" nowrap><?= $tr->type ?></td>
+					<td class="col-type" nowrap><?= $tr->type ?: '?' ?></td>
 					<td class="col-sumdesc">
 						<div class="summary"><?= html($tr->summary) ?> <? if ($tr->account): ?>(<?= html($tr->account) ?>)<? endif ?></div>
 						<div class="notes"><?= html($tr->notes_summary) ?></div>
