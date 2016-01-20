@@ -73,9 +73,17 @@ else if ( isset($_POST['amount'], $_POST['description'], $_POST['date']) ) {
 	$error = false;
 
 	if ( $totalAmount != $transaction->amount ) {
-		$error = true;
-		echo "<p class='error'>Totals don't match. Transaction says `" . number_format($transaction->amount, 2) . "`, your sub transactions say `" . number_format($totalAmount, 2) . "`.</p>";
-		echo "\n\n";
+		if ( abs($totalAmount) == abs($transaction->amount) ) {
+			$subTransactions = array_map(function($transaction) {
+				$transaction['amount'] *= -1;
+				return $transaction;
+			}, $subTransactions);
+		}
+		else {
+			$error = true;
+			echo "<p class='error'>Totals don't match. Transaction says `" . number_format($transaction->amount, 2) . "`, your sub transactions say `" . number_format($totalAmount, 2) . "`.</p>";
+			echo "\n\n";
+		}
 	}
 
 	if ( $hashClashes ) {
@@ -221,7 +229,7 @@ button.delete {
 				<? $subTransactions[] = array('date' => $transaction->date) ?>
 				<? foreach ( @$subTransactions ?: array_fill(0, 10, array('date' => $transaction->date)) as $i => $subTransaction ): ?>
 					<tr class="subTransaction <?= isset($hashClashes[$i]) ? 'error' : '' ?>">
-						<td><input name="amount[]" class="amount" type="number" step="any" value="<?= number_format(@$subTransaction['amount'] ?: 0, 2) ?>" /></td>
+						<td><input name="amount[]" class="amount" type="number" step="any" value="<?= number_format(@$subTransaction['amount'] ?: 0, 2, '.', '') ?>" /></td>
 						<td><input name="description[]" class="description" value="<?= html(@$subTransaction['description']) ?>" /></td>
 						<td><input name="date[]" class="date" type="date" value="<?= html(@$subTransaction['date']) ?>" /></td>
 						<td><select name="category[]" class="category"><?= html_options($categories, @$subTransaction['category_id'], '--') ?></select></td>
@@ -258,17 +266,22 @@ $('split').on('input', function(e) {
 });
 
 // Validate split total
-// $('split').on('submit', function(e) {
-// 	var total = this.getElements('input.amount').reduce(function(total, el) {
-// 		return total + parseFloat(el.value);
-// 	}, 0);
-// 	total = Math.round(total * 100) / 100;
+$('split').on('submit', function(e) {
+	var total = this.getElements('input.amount').reduce(function(total, el) {
+		return total + parseFloat(el.value);
+	}, 0);
+	total = Math.round(total * 100) / 100;
 
-// 	if ( total != <?= (float) $transaction->amount ?> ) {
-// 		alert("Totals don't match. Transaction says `<?= (float) $transaction->amount ?>`, your sub transactions say `" + total + "`.");
-// 		e.preventDefault();
-// 	}
-// });
+	if ( Math.abs(total) != Math.abs(<?= (float) $transaction->amount ?>) ) {
+		total = String(total * 100);
+		total = total.slice(0, -2) + '.' + total.slice(-2);
+		total = total.replace(/(\d)((?:\d{3})+)\./, function(m, n, nnn) {
+			return n + nnn.replace(/(\d{3})/g, ',$1') + '.';
+		});
+		alert("Totals don't match.\n\nSaved transactions: <?= number_format($transaction->amount, 2, '.', ',') ?>\nSplit total: " + total);
+		e.preventDefault();
+	}
+});
 </script>
 <?php
 
