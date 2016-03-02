@@ -19,6 +19,17 @@ if ( @$_POST['_action'] == 'delete' ) {
 	return do_redirect('index');
 }
 
+// UNSPLIT
+if ( @$_POST['_action'] == 'unsplit' ) {
+	// Delete children
+	$db->delete('transactions', array('parent_transaction_id' => $id));
+
+	// Unhide
+	$db->update('transactions', array('ignore' => 0), compact('id'));
+
+	return do_redirect('transaction', compact('id'));
+}
+
 // SAVE
 else if ( isset($_POST['category_id'], $_POST['notes'], $_POST['tags']) ) {
 	// Properties
@@ -207,6 +218,9 @@ button.delete {
 	<p>
 		<button name="_action" value="save">Save</button>
 		<button name="_action" value="delete" class="delete">Delete</button>
+		<? if ($transaction->ignore): ?>
+			<button name="_action" value="unsplit" class="delete">Unsplit</button>
+		<? endif ?>
 	</p>
 </form>
 
