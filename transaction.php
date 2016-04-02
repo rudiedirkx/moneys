@@ -241,13 +241,18 @@ button.delete {
 			</thead>
 			<tbody>
 				<? $subTransactions[] = array('date' => $transaction->date) ?>
-				<? foreach ( @$subTransactions ?: array_fill(0, 10, array('date' => $transaction->date)) as $i => $subTransaction ): ?>
+				<? foreach ( $subTransactions as $i => $subTransaction ): ?>
 					<tr class="subTransaction <?= isset($hashClashes[$i]) ? 'error' : '' ?>">
 						<td><input name="amount[]" class="amount" type="number" step="any" value="<?= number_format(@$subTransaction['amount'] ?: 0, 2, '.', '') ?>" /></td>
 						<td><input name="description[]" class="description" value="<?= html(@$subTransaction['description']) ?>" /></td>
 						<td><input name="date[]" class="date" type="date" value="<?= html(@$subTransaction['date']) ?>" /></td>
 						<td><select name="category[]" class="category"><?= html_options($categories, @$subTransaction['category_id'], '--') ?></select></td>
 						<td><input name="tags[]" class="tags" list="data-tags" value="<?= html(implode(' ', (array)@$subTransaction['tags'])) ?>" /></td>
+						<td>
+							<?if (!empty($subTransaction['id'])): ?>
+								<a href="transaction.php?id=<?= $subTransaction['id'] ?>">&gt;&gt;</a>
+							<? endif ?>
+						</td>
 					</tr>
 				<? endforeach ?>
 			</tbody>
