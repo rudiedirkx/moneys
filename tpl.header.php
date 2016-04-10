@@ -69,6 +69,18 @@ tr.dir-in td.category.empty {
 	background: #afa;
 }
 
+.per-year td,
+.per-year th {
+	white-space: nowrap;
+}
+.per-year .expanded {
+	background: #f7f7f7;
+}
+.per-year th > .num {
+	font-weight: normal;
+	margin-left: .25em;
+}
+
 select:focus {
 	outline: solid 4px black;
 }

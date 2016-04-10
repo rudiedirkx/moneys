@@ -39,30 +39,38 @@ $categories = $db->select('categories', '1 ORDER BY name ASC')->all();
 $spendings = $db->fetch_fields('SELECT category_id, SUM(amount) FROM transactions WHERE ignore = 0 GROUP BY category_id');
 // print_r($spendings);
 
+$transactionsPerYear = array();
 $spendingsPerYear = array_reduce($db->fetch('
-	SELECT category_id, SUBSTR(date, 1, 4) year, SUM(amount) amount
+	SELECT category_id, SUBSTR(date, 1, 4) year, SUM(amount) amount, COUNT(1) AS num
 	FROM transactions
 	WHERE ignore = 0 AND category_id IS NOT NULL
 	GROUP BY category_id, year
 	ORDER BY year DESC
-')->all(), function($result, $record) {
+')->all(), function($result, $record) use (&$transactionsPerYear) {
+	@$transactionsPerYear[ $record->year ] += $record->num;
+
 	$result[ $record->year ][ $record->category_id ] = $record->amount;
 	return $result;
 }, array());
 // print_r($spendingsPerYear);
+// print_r($transactionsPerYear);
 
+$spendingsPerMonth = $transactionsPerMonth = array();
 if ( $expandYear ) {
 	$spendingsPerMonth = array_reduce($db->fetch('
-		SELECT category_id, SUBSTR(date, 1, 7) month, SUM(amount) amount
+		SELECT category_id, SUBSTR(date, 1, 7) month, SUM(amount) amount, COUNT(1) AS num
 		FROM transactions
 		WHERE ignore = 0 AND category_id IS NOT NULL AND date LIKE ?
 		GROUP BY category_id, month
 		ORDER BY month DESC
-	', array($expandYear . '-_%'))->all(), function($result, $record) {
+	', array($expandYear . '-_%'))->all(), function($result, $record) use (&$transactionsPerMonth) {
+		@$transactionsPerMonth[ $record->month ] += $record->num;
+
 		$result[ $record->month ][ $record->category_id ] = $record->amount;
 		return $result;
 	}, array());
 	// print_r($spendingsPerMonth);
+	// print_r($transactionsPerMonth);
 }
 
 require 'tpl.header.php';
@@ -72,14 +80,9 @@ $categories[] = (object)array('id' => '', 'name' => '');
 $months = cache_months();
 
 ?>
-<style>
-.expanded {
-	background: #f7f7f7;
-}
-</style>
 
 <form method="post" action>
-	<table>
+	<table class="per-year categories">
 		<thead>
 			<tr>
 				<th>Name</th>
@@ -90,10 +93,14 @@ $months = cache_months();
 					?>
 					<th class="<?= $expanded ? 'expanded' : '' ?>">
 						<a title="Toggle monthly stats" href="categories.php<?if (!$expanded): ?>?year=<?= $year ?><? endif ?>"><?= $year ?></a>
+						<span class="num">(<?= (int) @$transactionsPerYear[$year] ?>)</span>
 					</th>
 					<?if ($expanded): ?>
 						<? foreach ($spendingsPerMonth as $month => $data): ?>
-							<th class="expanded"><?= html($months[ (int)substr($month, 5) ]) ?></th>
+							<th class="expanded">
+								<?= html($months[ (int)substr($month, 5) ]) ?>
+								<span class="num">(<?= (int) @$transactionsPerMonth[$month] ?>)</span>
+							</th>
 						<? endforeach ?>
 					<? endif ?>
 				<? endforeach ?>

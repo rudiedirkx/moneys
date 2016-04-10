@@ -24,30 +24,36 @@ $spendings = $db->fetch_fields('
 ');
 // print_r($spendings);
 
+$transactionsPerYear = array();
 $spendingsPerYear = array_reduce($db->fetch('
-	SELECT ta.id, SUBSTR(tr.date, 1, 4) year, SUM(tr.amount) amount
+	SELECT ta.id, SUBSTR(tr.date, 1, 4) year, SUM(tr.amount) amount, COUNT(1) num
 	FROM tags ta
 	JOIN tagged tt ON tt.tag_id = ta.id
 	JOIN transactions tr ON tr.id = tt.transaction_id
 	WHERE tr.ignore = 0
 	GROUP BY tag, year
 	ORDER BY year DESC
-')->all(), function($result, $record) {
+')->all(), function($result, $record) use (&$transactionsPerYear) {
+	@$transactionsPerYear[ $record->year ] += $record->num;
+
 	$result[ $record->year ][ $record->id ] = $record->amount;
 	return $result;
 }, array());
 // print_r($spendingsPerYear);
 
+$spendingsPerMonth = $transactionsPerMonth = array();
 if ( $expandYear ) {
 	$spendingsPerMonth = array_reduce($db->fetch('
-		SELECT ta.id, SUBSTR(tr.date, 1, 7) month, SUM(tr.amount) amount
+		SELECT ta.id, SUBSTR(tr.date, 1, 7) month, SUM(tr.amount) amount, COUNT(1) num
 		FROM tags ta
 		JOIN tagged tt ON tt.tag_id = ta.id
 		JOIN transactions tr ON tr.id = tt.transaction_id
 		WHERE ignore = 0 AND date LIKE ?
 		GROUP BY tag, month
 		ORDER BY month DESC
-	', array($expandYear . '-_%'))->all(), function($result, $record) {
+	', array($expandYear . '-_%'))->all(), function($result, $record) use (&$transactionsPerMonth) {
+		@$transactionsPerMonth[ $record->month ] += $record->num;
+
 		$result[ $record->month ][ $record->id ] = $record->amount;
 		return $result;
 	}, array());
@@ -59,13 +65,8 @@ require 'tpl.header.php';
 $months = cache_months();
 
 ?>
-<style>
-.expanded {
-	background: #f7f7f7;
-}
-</style>
 
-<table>
+<table class="per-year tags">
 	<thead>
 		<tr>
 			<th>Name</th>
@@ -76,10 +77,14 @@ $months = cache_months();
 				?>
 				<th class="<?= $expanded ? 'expanded' : '' ?>">
 					<a title="Toggle monthly stats" href="tags.php<?if (!$expanded): ?>?year=<?= $year ?><? endif ?>"><?= $year ?></a>
+					<span class="num">(<?= (int) @$transactionsPerYear[$year] ?>)</span>
 				</th>
 				<?if ($expanded): ?>
 					<? foreach ($spendingsPerMonth as $month => $data): ?>
-						<th class="expanded"><?= html($months[ (int)substr($month, 5) ]) ?></th>
+						<th class="expanded">
+							<?= html($months[ (int)substr($month, 5) ]) ?>
+							<span class="num">(<?= (int) @$transactionsPerMonth[$month] ?>)</span>
+						</th>
 					<? endforeach ?>
 				<? endif ?>
 			<? endforeach ?>
