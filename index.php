@@ -49,8 +49,8 @@ if ( !empty($_GET['tag']) ) {
 	$conditions[] = $db->replaceholders('id IN (SELECT transaction_id FROM tagged WHERE tag_id = ?)', array($_GET['tag']));
 }
 if ( @$_GET['min'] != '' && @$_GET['max'] != '' ) {
-	$min = (int)$_GET['min'];
-	$max = (int)$_GET['max'];
+	$min = (float) $_GET['min'];
+	$max = (float) $_GET['max'];
 	$max < $min and list($min, $max) = array($max, $min);
 	$conditions[] = $db->replaceholders('amount BETWEEN ? AND ?', array($min, $max));
 }
