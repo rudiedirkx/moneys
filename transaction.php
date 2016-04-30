@@ -203,7 +203,7 @@ button.delete {
 			<th>Category</th>
 			<td>
 				<select name="category_id" class="<? if (!$transaction->category_id): ?>error<? endif ?>">
-					<?= html_options($categories, $transaction->category_id, '-- Unknown') ?>
+					<?= html_options($categories, $transaction->selected_category_id, '-- Unknown') ?>
 				</select>
 			</td>
 		</tr>

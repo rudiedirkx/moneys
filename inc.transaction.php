@@ -94,7 +94,7 @@ class Transaction extends db_generic_record {
 		return substr($this->date, 0, 7);
 	}
 
-	function get_party_id_suggestion() {
+	function get_party_id_suggestions() {
 		$parties = cache_parties();
 
 		$suggestions = array();
@@ -107,17 +107,19 @@ class Transaction extends db_generic_record {
 			}
 		}
 
-		$suggestions = array_unique($suggestions);
-
-		if ( count($suggestions) == 1 ) {
-			return reset($suggestions);
-		}
+		return $suggestions;
 	}
 
 	function get_category_id_suggestion() {
-		if ( $this->party_id_suggestion ) {
-			$parties = cache_parties();
-			return $parties[$this->party_id_suggestion]->category_id;
+		if ( $this->party_id_suggestions ) {
+			$parties = array_intersect_key(cache_parties(), array_flip($this->party_id_suggestions));
+			$category_ids = array_unique(array_map(function($party) {
+				return $party->category_id;
+			}, $parties));
+
+			if (count($category_ids) == 1) {
+				return reset($category_ids);
+			}
 		}
 	}
 
