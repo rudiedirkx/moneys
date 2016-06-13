@@ -136,7 +136,7 @@ require 'tpl.header.php';
 		Tag: <select name="tag"><?= html_options($tags, @$_GET['tag'], '-- all') ?></select>
 		Amount: <input name="min" value="<?= @$_GET['min'] ?>" size="4" /> - <input name="max" value="<?= @$_GET['max'] ?>" size="4" />
 		Year: <select name="year"><?= html_options($years, @$_GET['year'], '-- all') ?></select>
-		Search: <input id="search-transactions" type="search" name="search" value="<?= @$_GET['search'] ?>" placeholder="Summary, description, account no..." />
+		Search: <input id="search-transactions" type="search" name="search" value="<?= @$_GET['search'] ?>" placeholder="Summ, Desc, Acc.no, Notes" />
 		<button>&gt;&gt;</button>
 	</p>
 </form>
