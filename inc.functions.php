@@ -9,26 +9,28 @@ function do_auth() {
 
 	session_start();
 
-	$auth = trim(@$_SESSION['moneys']['auth']);
-	if ( $auth ) {
-		$auths = preg_split('#\s+#', trim(MONEYS_LOCAL_AUTHS));
-		if ( in_array($auth, $auths, true) ) {
+	$session_user = trim(@$_SESSION['moneys']['user']);
+	$session_pass = trim(@$_SESSION['moneys']['pass']);
+	if ( $session_user && $session_pass ) {
+		if ( check_auth($session_user, $session_pass) ) {
 			return true;
 		}
 	}
 
-	$user = trim(@$_POST['user']);
-	$pass = trim(@$_POST['pass']);
-	if ( $user && $pass ) {
-		$auth = $user . ':' . crypt($pass, base64_encode($user . ':' . $pass));
-		$_SESSION['moneys']['auth'] = $auth;
+	$login_user = trim(@$_POST['user']);
+	$login_pass = trim(@$_POST['pass']);
+	if ( $login_user && $login_pass ) {
+		$_SESSION['moneys']['user'] = $login_user;
+		if (check_auth($login_user, $login_pass)) {
+			$_SESSION['moneys']['pass'] = $login_pass;
+		}
 
 		header('Location: ' . $_SERVER['REQUEST_URI']);
 		exit;
 	}
 
 	echo '<p>Only if you know the secret handshake...</p>' . "\n";
-	if ( $auth ) {
+	if ( $session_user ) {
 		echo '<p style="color: red">Wrong secret handshake!</p>' . "\n";
 	}
 	echo '<form method="post" action="" novalidate>' . "\n";
@@ -37,6 +39,28 @@ function do_auth() {
 	echo '<p><button>Log in</button></p>' . "\n";
 	echo '</form>' . "\n";
 	exit;
+}
+
+function check_auth($username, &$password) {
+	$auths = preg_split('#\s+#', trim(MONEYS_LOCAL_AUTHS));
+	foreach ($auths as $auth) {
+		list($check_username, $check_password) = explode(':', $auth);
+		if ($check_username == $username) {
+			if ($password[0] == '$') {
+				if ($check_password == $password) {
+					$password = $check_password;
+					return true;
+				}
+			}
+			else {
+				if (password_verify($password, $check_password)) {
+					$password = $check_password;
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 function do_403() {
