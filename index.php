@@ -10,15 +10,10 @@ if ( isset($_POST['check']) ) {
 	if ( $tags = trim($_POST['add_tag']) ) {
 		$db->begin();
 		foreach (Transaction::splitTags($tags) as $tag) {
-			$tag_id = Transaction::ensureTag($tag);
+			$tagId = Transaction::ensureTag($tag);
 
-			foreach ( $_POST['check'] as $transaction_id ) {
-				try {
-					$db->insert('tagged', compact('tag_id', 'transaction_id'));
-				}
-				catch (Exception $ex) {
-					// Assume this is a duplicity error, and ignore it.
-				}
+			foreach ( $_POST['check'] as $trId ) {
+				Transaction::tag($trId, $tagId);
 			}
 		}
 		$db->commit();
@@ -30,12 +25,22 @@ if ( isset($_POST['check']) ) {
 
 else if ( isset($_POST['category']) ) {
 	$db->begin();
+
+	// Save category dropdowns
 	foreach ( $_POST['category'] as $trId => $catId ) {
 		$db->update('transactions', array('category_id' => $catId ?: null), array('id' => $trId));
 	}
+
+	// Save new tags
+	foreach ( (array) @$_POST['trtags'] as $trId => $tags ) {
+		foreach ( $tags as $tag ) {
+			$tagId = Transaction::ensureTag($tag);
+			Transaction::tag($trId, $tagId);
+		}
+	}
+
 	$db->commit();
 
-	// exit;
 	return do_redirect();
 }
 

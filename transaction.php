@@ -215,7 +215,7 @@ ul.compact {
 		<tr>
 			<th>Tags</th>
 			<td>
-				<input name="tags" value="<?= html(implode(' ', $transaction->tags)) ?>" /> (space separated)
+				<input name="tags" class="tags" list="data-tags" value="<?= html(implode(' ', $transaction->tags)) ?>" /> (space separated)
 			</td>
 		</tr>
 		<tr>

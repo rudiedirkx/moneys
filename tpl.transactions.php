@@ -119,7 +119,13 @@ body:not(.hide-sumdesc) .show-sumdesc {
 						<select name="category[<?= $tr->id ?>]"><?= html_options($categories, $tr->selected_category_id, '--') ?></select>
 					</td>
 					<td>
-						<label for="tr-<?= $tr->id ?>"><?= isset($tr->tags) ? implode('<br>', $tr->tags) : '<span class="no-tags">no tags</span>' ?></label>
+						<? if (!$tr->category_id && empty($tr->tags)): ?>
+							<? foreach ($tr->tag_suggestions as $tag): ?>
+								<label style="white-space: nowrap"><input checked type="checkbox" name="trtags[<?= $tr->id ?>][]" value="<?= html($tag) ?>" /><?= html($tag) ?></label>
+							<? endforeach ?>
+						<? else: ?>
+							<label for="tr-<?= $tr->id ?>"><?= isset($tr->tags) ? implode('<br>', $tr->tags) : '<span class="no-tags">no tags</span>' ?></label>
+						<? endif ?>
 					</td>
 				</tr>
 			<? endforeach ?>

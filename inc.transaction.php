@@ -6,6 +6,20 @@ class Transaction extends db_generic_record {
 
 	// public $tags = array();
 
+	static function tag( $transactionId, $tagId ) {
+		global $db;
+
+		try {
+			$db->insert('tagged', array(
+				'tag_id' => $tagId,
+				'transaction_id' => $transactionId,
+			));
+		}
+		catch (Exception $ex) {
+			// Assume this is a duplicity error, and ignore it.
+		}
+	}
+
 	static function ensureTag( $tag ) {
 		global $db;
 
@@ -137,6 +151,8 @@ class Transaction extends db_generic_record {
 			$categories = $db->select('categories', 'id in (?)', array($this->category_id_suggestions));
 			return $categories;
 		}
+
+		return array();
 	}
 
 	function get_category_id_suggestion() {
