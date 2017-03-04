@@ -37,6 +37,7 @@ return array(
 			'auto_sumdesc' => array('null' => false, 'default' => ''),
 			'auto_account' => array('null' => false, 'default' => ''),
 			'category_id' => array('unsigned' => true, 'null' => true),
+			'tags' => array('null' => false, 'default' => ''),
 		),
 	),
 	'categories' => array(

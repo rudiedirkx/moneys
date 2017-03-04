@@ -29,14 +29,14 @@ if ( isset($_POST['parties']) ) {
 }
 
 $parties = $db->select('parties', '1 ORDER BY name ASC')->all();
-// print_r($parties);
 
 $categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
-// print_r($categories);
 
 require 'tpl.header.php';
 
-$parties[] = (object)array('id' => '0', 'name' => '');
+$parties[] = (object) array('id' => '0', 'name' => '');
+
+$tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 
 ?>
 <style>
@@ -48,8 +48,8 @@ $parties[] = (object)array('id' => '0', 'name' => '');
 	border-bottom: solid 1px #aaa;
 	background-color: transparent;
 	width: 400px;
-	padding-left: 10px;
-	padding-right: 10px;
+	padding-left: 1px;
+	padding-right: 1px;
 }
 </style>
 
@@ -57,26 +57,33 @@ $parties[] = (object)array('id' => '0', 'name' => '');
 	<table>
 		<thead>
 			<tr>
-				<th rowspan="2">Name</th>
-				<th colspan="1" class="c">Auto-assign (regex)</th>
-				<th rowspan="2">Category</th>
-			</tr>
-			<tr>
-				<th>Summary &amp; Description</th>
+				<th>Name</th>
+				<th class="c">Match (summary &amp; description)</th>
+				<th>Category</th>
+				<th>Tags</th>
 			</tr>
 		</thead>
 		<tbody>
 			<? foreach ($parties as $party): ?>
 				<tr>
-					<td><input name="parties[<?= $party->id ?>][name]" value="<?= html($party->name) ?>" placeholder="Party name" /></td>
+					<td>
+						<input name="parties[<?= $party->id ?>][name]" value="<?= html($party->name) ?>" placeholder="<?= $party->id ? 'Delete this party' : 'New party name' ?>" />
+					</td>
 					<td class="auto">
 						#<input name="parties[<?= $party->id ?>][auto_sumdesc]" value="<?= @$party->auto_sumdesc ?>" />#i
 					</td>
-					<td><select name="parties[<?= $party->id ?>][category_id]"><?= html_options($categories, @$party->category_id, '--') ?></select></td>
+					<td>
+						<select name="parties[<?= $party->id ?>][category_id]"><?= html_options($categories, @$party->category_id, '--') ?></select>
+					</td>
+					<td>
+						<input name="parties[<?= $party->id ?>][tags]" value="<?= html(@$party->tags) ?>" list="data-tags" autocomplete="off" />
+					</td>
 				</tr>
 			<? endforeach ?>
 		<tbody>
 	</table>
+
+	<datalist id="data-tags"><?= html_options($tags, '', '', true) ?></datalist>
 
 	<p><button>Save</button></p>
 </form>

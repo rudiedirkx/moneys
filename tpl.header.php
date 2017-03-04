@@ -41,6 +41,10 @@ textarea.error {
 	border-color: red;
 	outline: solid 1px red;
 }
+textarea {
+	tab-size: 4;
+	white-space: nowrap;
+}
 
 body > .main-menu {
 	margin-top: 0;

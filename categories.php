@@ -75,7 +75,7 @@ if ( $expandYear ) {
 
 require 'tpl.header.php';
 
-$categories[] = (object)array('id' => '', 'name' => '');
+$categories[] = (object)array('id' => '0', 'name' => '');
 
 $months = cache_months();
 
@@ -123,11 +123,17 @@ $months = cache_months();
 					<? foreach ($spendingsPerYear as $year => $data):
 						$expanded = $expandYear == $year;
 						?>
-						<td class="amount <?= $expanded ? 'expanded' : '' ?>"><a href="index.php?category=<?= $cat->id ?>&year=<?= $year ?>"><?= html_money(@$data[$cat->id], true) ?></a></td>
+						<td class="amount <?= $expanded ? 'expanded' : '' ?>">
+							<? if ($cat->id): ?>
+								<a href="index.php?category=<?= $cat->id ?>&year=<?= $year ?>"><?= html_money(@$data[$cat->id], true) ?></a>
+							<? endif ?>
+						</td>
 						<?if ($expanded): ?>
 							<? foreach ($spendingsPerMonth as $month => $data): ?>
 								<td class="expanded">
-									<a href="index.php?category=<?= $cat->id ?>&year=<?= $month ?>"><?= html_money(@$data[$cat->id], true) ?></a>
+									<? if ($cat->id): ?>
+										<a href="index.php?category=<?= $cat->id ?>&year=<?= $month ?>"><?= html_money(@$data[$cat->id], true) ?></a>
+									<? endif ?>
 								</td>
 							<? endforeach ?>
 						<? endif ?>

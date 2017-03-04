@@ -147,6 +147,11 @@ button.delete {
 	color: white;
 }
 
+ul.compact {
+	margin: 0;
+	padding-left: 1.5em;
+}
+
 #split .amount {
 	width: 5em;
 }
@@ -193,7 +198,7 @@ button.delete {
 		<tr>
 			<th>
 				Personal notes<br/>
-				<div style="font-weight: normal; margin-top: .3em">(first line will be visible on overviews)</div>
+				<div style="font-weight: normal; margin-top: .3em; white-space: nowrap">(first line will be visible on overviews)</div>
 			</th>
 			<td>
 				<textarea name="notes" rows="4" style="width: 100%; display: block"><?= html($transaction->notes) ?></textarea>
@@ -211,6 +216,39 @@ button.delete {
 			<th>Tags</th>
 			<td>
 				<input name="tags" value="<?= html(implode(' ', $transaction->tags)) ?>" /> (space separated)
+			</td>
+		</tr>
+		<tr>
+			<th>Parties</th>
+			<td>
+				<ul class="compact">
+					<? foreach ($transaction->party_suggestions as $party): ?>
+						<li><?= $party->name ?></li>
+					<? endforeach ?>
+				</ul>
+			</td>
+		</tr>
+		<tr>
+			<th>Assignments</th>
+			<td>
+				<ul class="compact">
+					<li>
+						Categories (<?= count($transaction->category_suggestions) ?>)
+						<ul class="compact">
+							<? foreach ($transaction->category_suggestions as $category): ?>
+								<li><?= $category->name ?></li>
+							<? endforeach ?>
+						</ul>
+					</li>
+					<li>
+						Tags (<?= count($transaction->tag_suggestions) ?>)
+						<ul class="compact">
+							<? foreach ($transaction->tag_suggestions as $tag): ?>
+								<li><?= $tag ?></li>
+							<? endforeach ?>
+						</ul>
+					</li>
+				</ul>
 			</td>
 		</tr>
 	</table>

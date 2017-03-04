@@ -17,16 +17,12 @@ if ( !$db ) {
 	exit("<p>No db...</p>");
 }
 
-// Screw ACID, go SPEED!
-$db->execute('PRAGMA synchronous=OFF');
-$db->execute('PRAGMA journal_mode=OFF');
-
 // Peripherals
 require 'inc.transaction.php';
 
 // Verify db schema
 $schema = require 'inc.schema.php';
-$db->schema($schema);
+// $db->schema($schema);
 
 // Start UTF-8 everywhere, always
 mb_internal_encoding('utf-8');

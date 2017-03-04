@@ -7,19 +7,18 @@ $page = (int)@$_GET['page'];
 $export = isset($_GET['export']);
 
 if ( isset($_POST['check']) ) {
-	if ( $tag = trim($_POST['add_tag']) ) {
-		if ( !($tag_id = $db->select_one('tags', 'id', array('tag' => $_POST['add_tag']))) ) {
-			$db->insert('tags', array('tag' => $_POST['add_tag']));
-			$tag_id = $db->insert_id();
-		}
-
+	if ( $tags = trim($_POST['add_tag']) ) {
 		$db->begin();
-		foreach ( $_POST['check'] as $transaction_id ) {
-			try {
-				$db->insert('tagged', compact('tag_id', 'transaction_id'));
-			}
-			catch (Exception $ex) {
-				// Assume this is a duplicity error, and ignore it.
+		foreach (Transaction::splitTags($tags) as $tag) {
+			$tag_id = Transaction::ensureTag($tag);
+
+			foreach ( $_POST['check'] as $transaction_id ) {
+				try {
+					$db->insert('tagged', compact('tag_id', 'transaction_id'));
+				}
+				catch (Exception $ex) {
+					// Assume this is a duplicity error, and ignore it.
+				}
 			}
 		}
 		$db->commit();
@@ -152,7 +151,10 @@ include 'tpl.transactions.php';
 
 ?>
 
-<pre><strong>Query:</strong> <?= html($query); ?></pre>
+<details>
+	<summary>Query</summary>
+	<pre><?= html($query) ?></pre>
+</details>
 
 <script>
 document.addEventListener('keydown', function(e) {
