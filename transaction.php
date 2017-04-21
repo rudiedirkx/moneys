@@ -83,8 +83,12 @@ else if ( isset($_POST['amount'], $_POST['description'], $_POST['date']) ) {
 
 	$error = false;
 
-	if ( $totalAmount != $transaction->amount ) {
-		if ( abs($totalAmount) == abs($transaction->amount) ) {
+	$round = function($number) {
+		return number_format($number, 2, '.', '');
+	};
+
+	if ( $round($totalAmount) != $round($transaction->amount) ) {
+		if ( $round(abs($totalAmount)) == $round(abs($transaction->amount)) ) {
 			$subTransactions = array_map(function($transaction) {
 				$transaction['amount'] *= -1;
 				return $transaction;
