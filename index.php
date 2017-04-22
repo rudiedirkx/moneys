@@ -133,7 +133,7 @@ if ( $export ) {
 require 'tpl.header.php';
 
 ?>
-<form action>
+<form method="get" action>
 	<input type="hidden" name="sort" value="<?= html($sort) ?>" />
 	<p>
 		Category: <select name="category"><?= html_options(array('-1' => '-- none') + $categories, @$_GET['category'], '-- all') ?></select>

@@ -20,12 +20,12 @@ if ( isset($_FILES['csv']) ) {
 	$records = array_map(function($tr) use ($directions, $types) {
 		$dir = $directions[ trim($tr['Af Bij']) ];
 		$record = array(
-			'date' => substr($tr['Datum'], 0, 4) . '-' . substr($tr['Datum'], 4, 2) . '-' . substr($tr['Datum'], 6, 2),
+			'date' => get_date_from_ymd($tr['Datum']),
 			'summary' => trim($tr['Naam / Omschrijving']),
 			'description' => trim($tr['Mededelingen']),
 			'type' => @$types[ trim($tr['Code']) ],
 			'account' => preg_replace('#\s+#', '', trim($tr['Tegenrekening'])) ?: null,
-			'amount' => $dir * (float)strtr($tr['Bedrag (EUR)'], array('.' => '', ',' => '.')),
+			'amount' => $dir * get_amount_from_eu($tr['Bedrag (EUR)']),
 		);
 
 		$record['hash'] = get_transaction_hash($record);
@@ -70,11 +70,11 @@ if ( isset($_FILES['csv']) ) {
 require 'tpl.header.php';
 
 ?>
-<form method="post" enctype="multipart/form-data">
+<form method="post" action enctype="multipart/form-data">
 
 	<p>Upload CSV: <input type="file" name="csv" /></p>
 
-	<p><input type="submit" /></p>
+	<p><button>Import</button></p>
 
 </form>
 <?php

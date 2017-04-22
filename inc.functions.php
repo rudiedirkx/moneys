@@ -33,7 +33,7 @@ function do_auth() {
 	if ( $session_user ) {
 		echo '<p style="color: red">Wrong secret handshake!</p>' . "\n";
 	}
-	echo '<form method="post" action="" novalidate>' . "\n";
+	echo '<form method="post" action novalidate>' . "\n";
 	echo '<p>User: <input type="email" name="user" /></p>' . "\n";
 	echo '<p>Pass: <input type="password" name="pass" /></p>' . "\n";
 	echo '<p><button>Log in</button></p>' . "\n";
@@ -69,6 +69,18 @@ function do_403() {
 
 function do_404() {
 	header('HTTP/1.1 404 Not found');
+}
+
+function get_date_from_ymd( $date ) {
+	return substr($date, 0, 4) . '-' . substr($date, 4, 2) . '-' . substr($date, 6, 2);
+}
+
+function get_date_from_d_m_y( $date ) {
+	return substr($date, 6, 4) . '-' . substr($date, 3, 2) . '-' . substr($date, 0, 2);
+}
+
+function get_amount_from_eu( $amount ) {
+	return (float) strtr($amount, array('.' => '', ',' => '.'));
 }
 
 function get_transaction_hash($transaction) {

@@ -31,7 +31,7 @@ if ( @$_POST['_action'] == 'unsplit' ) {
 }
 
 // SAVE
-else if ( isset($_POST['category_id'], $_POST['notes'], $_POST['tags']) ) {
+if ( isset($_POST['category_id'], $_POST['notes'], $_POST['tags']) ) {
 	// Properties
 	$db->update('transactions', array(
 		'category_id' => $_POST['category_id'] ?: null,
@@ -45,8 +45,31 @@ else if ( isset($_POST['category_id'], $_POST['notes'], $_POST['tags']) ) {
 	return do_redirect('transaction', compact('id'));
 }
 
+// SPLIT FROM CSV UPLOAD
+if ( isset($_FILES['csv']) ) {
+	$file = fopen($_FILES['csv']['tmp_name'], 'r');
+	$hasHeader = fgetcsv($file);
+	$mustHeader = ["Datum","Naam / Omschrijving","Bedrag (EUR)","Af Bij"];
+	if ( $hasHeader !== $mustHeader ) {
+		exit('Invalid CSV. Header must be exactly: "' . implode('", "', $mustHeader) . '"');
+	}
+
+	$_POST['amount'] = $_POST['description'] = $_POST['date'] = $_POST['category'] = $_POST['tags'] = array();
+	while ( $data = fgetcsv($file) ) {
+		if ( $data[3] == 'Af' ) {
+			$_POST['amount'][] = get_amount_from_eu($data[2]);
+			$_POST['description'][] = $data[1];
+			$_POST['date'][] = get_date_from_d_m_y($data[0]);
+			$_POST['category'][] = '';
+			$_POST['tags'][] = '';
+		}
+	}
+
+	// Overflow into SPLIT action below
+}
+
 // SPLIT
-else if ( isset($_POST['amount'], $_POST['description'], $_POST['date']) ) {
+if ( isset($_POST['amount'], $_POST['description'], $_POST['date'], $_POST['category'], $_POST['tags']) ) {
 	$existingHashes = $db->select_fields('transactions', 'hash, hash', 'parent_transaction_id <> ?', array($transaction->id));
 
 	$subTransactions = $hashClashes = array();
@@ -125,7 +148,7 @@ else if ( isset($_POST['amount'], $_POST['description'], $_POST['date']) ) {
 
 		$db->commit();
 
-		return do_redirect('index');
+		return do_redirect('transaction', compact('id'));
 	}
 }
 
@@ -171,7 +194,7 @@ ul.compact {
 }
 </style>
 
-<form id="edit" method="post" action="">
+<form id="edit" method="post" action>
 	<table border="1">
 		<tr>
 			<th>Date</th>
@@ -267,9 +290,19 @@ ul.compact {
 </form>
 
 <? if (!$transaction->parent_transaction_id): ?>
+	<h2>Split transaction by ING CC export</h2>
+
+	<form method="post" action enctype="multipart/form-data">
+
+		<p>Upload CSV: <input type="file" name="csv" /></p>
+
+		<p><button>Import</button></p>
+
+	</form>
+
 	<h2>Split transaction</h2>
 
-	<form id="split" method="post" action="">
+	<form id="split" method="post" action>
 
 		<table border="1">
 			<thead>
