@@ -124,7 +124,7 @@ foreach ( $tagged as $record ) {
 if ( $export ) {
 	csv_file(
 		$transactions,
-		array('id', 'date', 'amount', 'type', 'sumdesc', 'notes', 'category', 'tags_as_string'),
+		array('id', 'date', 'amount2dec', 'type', 'sumdesc', 'notes', 'category', 'tags_as_string'),
 		'moneys.csv'
 	);
 	exit;

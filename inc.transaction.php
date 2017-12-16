@@ -108,6 +108,10 @@ class Transaction extends db_generic_record {
 		return @self::$_categories[ (int)$this->category_id ] ?: '';
 	}
 
+	function get_amount2dec() {
+		return number_format($this->amount, 2, '.', ',');
+	}
+
 	function get_tags_as_string() {
 		return implode(' ', $this->tags);
 	}
