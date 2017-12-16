@@ -99,10 +99,14 @@ $months = cache_months();
 				<? foreach ($spendingsPerYear as $year => $data):
 					$expanded = $expandYear == $year;
 					?>
-					<td class="amount <?= $expanded ? 'expanded' : '' ?>"><a href="index.php?tag=<?= $tag->id ?>&year=<?= $year ?>"><?= html_money(@$data[$tag->id], true) ?></a></td>
+					<td class="amount <?= $expanded ? 'expanded' : '' ?>">
+						<a href="index.php?tag=<?= $tag->id ?>&year=<?= $year ?>"><?= html_money(@$data[$tag->id], true) ?></a>
+					</td>
 					<?if ($expanded): ?>
 						<? foreach ($spendingsPerMonth as $month => $data): ?>
-							<td class="expanded"><?= html_money(@$data[$tag->id], true) ?></td>
+							<td class="expanded">
+								<a href="index.php?tag=<?= $tag->id ?>&year=<?= $month ?>"><?= html_money(@$data[$tag->id], true) ?></a>
+							</td>
 						<? endforeach ?>
 					<? endif ?>
 				<? endforeach ?>
