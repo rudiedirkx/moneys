@@ -1,0 +1,21 @@
+{
+    "name": "rdx/moneys",
+    "description": "Very simple money management.",
+    "type": "project",
+    "require": {
+        "rdx/db": "^1.2"
+    },
+    "autoload": {
+        "files": [
+            "inc.models.php",
+            "inc.functions.php"
+        ]
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Rudie Dirkx",
+            "email": "github@hotblocks.nl"
+        }
+    ]
+}
