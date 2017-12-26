@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "rdx/db",
-            "version": "1.2",
+            "version": "1.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rudiedirkx/db_generic.git",
-                "reference": "30d881dbd7e2f0d7969c7821ce214522ff658657"
+                "reference": "4caaaf25429a23e8031b72df3decd227b388f128"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rudiedirkx/db_generic/zipball/30d881dbd7e2f0d7969c7821ce214522ff658657",
-                "reference": "30d881dbd7e2f0d7969c7821ce214522ff658657",
+                "url": "https://api.github.com/repos/rudiedirkx/db_generic/zipball/4caaaf25429a23e8031b72df3decd227b388f128",
+                "reference": "4caaaf25429a23e8031b72df3decd227b388f128",
                 "shasum": ""
             },
             "type": "library",
@@ -39,7 +39,7 @@
                 }
             ],
             "description": "Simple MySQL/SQLite wrapper",
-            "time": "2017-11-20T11:08:45+00:00"
+            "time": "2017-12-26T17:33:08+00:00"
         }
     ],
     "packages-dev": [],
