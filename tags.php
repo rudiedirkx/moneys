@@ -4,7 +4,7 @@ require 'inc.bootstrap.php';
 
 $expandYear = (int)@$_GET['year'];
 
-$tags = $db->fetch('
+$tags = Tag::query('
 	SELECT ta.*, COUNT(1) num_transactions
 	FROM tags ta
 	JOIN tagged tt ON tt.tag_id = ta.id
@@ -12,7 +12,7 @@ $tags = $db->fetch('
 	WHERE tr.ignore = 0
 	GROUP BY ta.id
 	ORDER BY tag ASC
-')->all();
+');
 // print_r($tags);
 
 $spendings = $db->fetch_fields('

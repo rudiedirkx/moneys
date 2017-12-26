@@ -2,6 +2,8 @@
 
 require 'inc.bootstrap.php';
 
+$categories = Category::all('1 ORDER BY name ASC');
+
 if ( isset($_POST['categories']) ) {
 	header('Content-type: text/plain');
 
@@ -11,18 +13,20 @@ if ( isset($_POST['categories']) ) {
 
 		// Existing
 		if ( $id ) {
+			$category = Category::find($id);
+
 			// Update
 			if ( $name ) {
-				$db->update('categories', $cat, compact('id'));
+				$category->update($cat);
 			}
 			// Delete
 			else {
 				$db->update('transactions', array('category_id' => null), array('category_id' => $id));
-				$db->delete('categories', compact('id'));
+				$category->delete();
 			}
 		}
 		// New
-		else if ( $name ) {
+		elseif ( $name ) {
 			$db->insert('categories', $cat);
 		}
 	}
@@ -32,9 +36,6 @@ if ( isset($_POST['categories']) ) {
 }
 
 $expandYear = (int)@$_GET['year'];
-
-$categories = $db->select('categories', '1 ORDER BY name ASC')->all();
-// print_r($categories);
 
 $spendings = $db->fetch_fields('SELECT category_id, SUM(amount) FROM transactions WHERE ignore = 0 GROUP BY category_id');
 // print_r($spendings);
@@ -75,7 +76,7 @@ if ( $expandYear ) {
 
 require 'tpl.header.php';
 
-$categories[] = (object)array('id' => '0', 'name' => '');
+$categories[] = new Category(array('name' => ''));
 
 $months = cache_months();
 

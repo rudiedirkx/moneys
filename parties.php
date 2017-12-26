@@ -2,39 +2,39 @@
 
 require 'inc.bootstrap.php';
 
+$parties = Party::all('1 ORDER BY name ASC');
+
 if ( isset($_POST['parties']) ) {
-	foreach ( $_POST['parties'] as $id => $party ) {
-		$name = trim($party['name']);
+	foreach ( $_POST['parties'] as $id => $data ) {
+		$name = trim($data['name']);
 
 		// Existing
 		if ( $id ) {
+			$party = Party::find($id);
+
 			// Update
 			if ( $name ) {
-				isset($party['category_id']) and empty($party['category_id']) and $party['category_id'] = null;
-
-				$db->update('parties', $party, compact('id'));
+				$party->update($data);
 			}
 			// Delete
 			else {
-				$db->delete('parties', compact('id'));
+				$party->delete();
 			}
 		}
 		// New
-		else if ( $name ) {
-			$db->insert('parties', $party);
+		elseif ( $name ) {
+			Party::insert($data);
 		}
 	}
 
 	return do_redirect('parties');
 }
 
-$parties = $db->select('parties', '1 ORDER BY name ASC')->all();
-
-$categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
-
 require 'tpl.header.php';
 
-$parties[] = (object) array('id' => '0', 'name' => '');
+$parties[] = new Party(array('name' => ''));
+
+$categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
 
 $tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 

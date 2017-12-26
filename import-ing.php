@@ -54,7 +54,7 @@ if ( isset($_FILES['csv']) ) {
 				$record['hash'] .= '-' . rand(100, 999);
 			}
 
-			$db->insert('transactions', $record);
+			Transaction::insert($record);
 			$inserts++;
 			$new[ $record['hash'] ] = $record['hash'];
 		}

@@ -1,16 +1,67 @@
 <?php
 
-class Transaction extends db_generic_record {
+class Model extends db_generic_model {
+
+}
+
+class Tag extends Model {
+	static public $_table = 'tags';
+
+	static function decorateTransactions( array $transactions, array $tags ) {
+		foreach ( $transactions as $tr ) {
+			$tr->tags = array();
+		}
+
+		$tagged = self::$_db->select('tagged', array('transaction_id' => array_keys($transactions)))->all();
+		foreach ( $tagged as $record ) {
+			$transactions[ $record->transaction_id ]->tags[] = $tags[ $record->tag_id ];
+		}
+	}
+
+	static function split( $tags ) {
+		if ( !is_array($tags) ) {
+			$tags = preg_split('#\s+#', trim($tags));
+		}
+		return array_values(array_unique(array_filter($tags)));
+	}
+
+	static function ensure( $tag ) {
+		if ( $tag = self::get($tag) ) {
+			return $tag->id;
+		}
+
+		return self::insert(compact('tag'));
+	}
+
+	static function get( $tag ) {
+		return self::first(compact('tag'));
+	}
+}
+
+class Category extends Model {
+	static public $_table = 'categories';
+}
+
+class Party extends Model {
+	static public $_table = 'parties';
+
+	static function presave( &$data ) {
+		parent::presave($data);
+
+		isset($data['category_id']) and empty($data['category_id']) and $data['category_id'] = null;
+	}
+}
+
+class Transaction extends Model {
+	static public $_table = 'transactions';
 
 	static public $_categories = array();
 
 	// public $tags = array();
 
 	static function tag( $transactionId, $tagId ) {
-		global $db;
-
 		try {
-			$db->insert('tagged', array(
+			self::$_db->insert('tagged', array(
 				'tag_id' => $tagId,
 				'transaction_id' => $transactionId,
 			));
@@ -20,67 +71,47 @@ class Transaction extends db_generic_record {
 		}
 	}
 
-	static function ensureTag( $tag ) {
-		global $db;
+	static function presave( &$data ) {
+		parent::presave($data);
 
-		$tagId = $db->select_one('tags', 'id', array('tag' => $tag));
-		if ( $tagId ) {
-			return $tagId;
-		}
-
-		$db->insert('tags', array('tag' => $tag));
-		return $db->insert_id();
+		isset($data['category_id']) and empty($data['category_id']) and $data['category_id'] = null;
 	}
 
-	static function splitTags( $tags ) {
-		return array_values(array_unique(array_filter(preg_split('#\s+#', trim($tags)))));
-	}
-
-	static function insert( $data ) {
-		global $db;
-
-		// Collect tags
-		$tags = @$data['tags'] ?: array();
+	static function insert( array $data ) {
+		// Extract tags
+		$tags = @$data['tags'];
 		unset($data['tags']);
-		if ( !is_array($tags) ) {
-			$tags = array_filter(explode(' ', $tags));
-		}
 
-		// Create transaction record
-		$db->insert('transactions', $data);
-		$transaction = $db->select('transactions', array('id' => $db->insert_id()), null, 'Transaction')->first();
+		$id = parent::insert($data);
+		$transaction = self::find($id);
 
 		// Save tags
 		if ( $tags ) {
 			$transaction->saveTags($tags, false);
 		}
 
-		return $transaction;
+		return $id;
 	}
 
 	function saveTags( $tags, $dbTransaction = true ) {
-		global $db;
+		$tags = Tag::split($tags);
 
 		if ( $dbTransaction ) {
-			$db->begin();
+			self::$_db->begin();
 		}
 
-		$db->delete('tagged', array('transaction_id' => $this->id));
-		foreach ( array_unique($tags) as $tag ) {
-			$tagId = $db->select_one('tags', 'id', compact('tag'));
-			if ( !$tagId ) {
-				$db->insert('tags', compact('tag'));
-				$tagId = $db->insert_id();
-			}
+		self::$_db->delete('tagged', array('transaction_id' => $this->id));
+		foreach ( $tags as $tag ) {
+			$tagId = Tag::ensure($tag);
 
-			$db->insert('tagged', array(
+			self::$_db->insert('tagged', array(
 				'transaction_id' => $this->id,
 				'tag_id' => $tagId,
 			));
 		}
 
 		if ( $dbTransaction ) {
-			$db->commit();
+			self::$_db->commit();
 		}
 	}
 
@@ -93,9 +124,12 @@ class Transaction extends db_generic_record {
 		return '';
 	}
 
+	function get_child_transactions() {
+		return self::all(['parent_transaction_id' => $this->id]);
+	}
+
 	function get_tags() {
-		global $db;
-		return $db->fetch_fields('
+		return self::$_db->fetch_fields('
 			SELECT t.id, t.tag
 			FROM tagged g
 			JOIN tags t ON (t.id = g.tag_id)
@@ -149,10 +183,8 @@ class Transaction extends db_generic_record {
 	}
 
 	function get_category_suggestions() {
-		global $db;
-
 		if ( $this->category_id_suggestions ) {
-			$categories = $db->select('categories', 'id in (?)', array($this->category_id_suggestions));
+			$categories = self::$_db->select('categories', 'id in (?)', array($this->category_id_suggestions));
 			return $categories;
 		}
 
@@ -185,7 +217,7 @@ class Transaction extends db_generic_record {
 
 		if ( $this->party_suggestions ) {
 			foreach ($this->party_suggestions as $party) {
-				foreach (self::splitTags($party->tags) as $tag) {
+				foreach (Tag::split($party->tags) as $tag) {
 					$tags[] = $tag;
 				}
 			}
@@ -209,6 +241,10 @@ class Transaction extends db_generic_record {
 		);
 		$this->new_group and $classes[] = 'new-group';
 		return $classes;
+	}
+
+	function get_is_new() {
+		return !$this->category_id && !$this->tags;
 	}
 
 }

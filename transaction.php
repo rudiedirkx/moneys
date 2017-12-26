@@ -3,13 +3,14 @@
 require 'inc.bootstrap.php';
 
 $id = (int)$_GET['id'];
-$transaction = $db->select('transactions', compact('id'), null, 'Transaction')->first();
+$transaction = Transaction::find($id);
 if ( !$transaction ) {
 	do_404();
+	require 'tpl.header.php';
 	exit('Transaction not found.');
 }
 
-$subTransactions = $db->select('transactions', array('parent_transaction_id' => $id), null, 'Transaction')->all();
+$subTransactions = $transaction->child_transactions;
 $hashClashes = array();
 
 // DELETE
@@ -25,7 +26,7 @@ if ( @$_POST['_action'] == 'unsplit' ) {
 	$db->delete('transactions', array('parent_transaction_id' => $id));
 
 	// Unhide
-	$db->update('transactions', array('ignore' => 0), compact('id'));
+	$transaction->update(array('ignore' => 0));
 
 	return do_redirect('transaction', compact('id'));
 }
@@ -33,14 +34,13 @@ if ( @$_POST['_action'] == 'unsplit' ) {
 // SAVE
 if ( isset($_POST['category_id'], $_POST['notes'], $_POST['tags']) ) {
 	// Properties
-	$db->update('transactions', array(
-		'category_id' => $_POST['category_id'] ?: null,
+	$transaction->update(array(
+		'category_id' => $_POST['category_id'],
 		'notes' => trim($_POST['notes']),
-	), compact('id'));
+	));
 
 	// Tags
-	$tags = array_filter(explode(' ', mb_strtolower(trim($_POST['tags']))));
-	$transaction->saveTags($tags);
+	$transaction->saveTags($_POST['tags']);
 
 	return do_redirect('transaction', compact('id'));
 }
@@ -134,9 +134,9 @@ if ( isset($_POST['amount'], $_POST['description'], $_POST['date'], $_POST['cate
 		$db->begin();
 
 		// Save parent
-		$db->update('transactions', array(
+		$transaction->update(array(
 			'ignore' => 1,
-		), array('id' => $transaction->id));
+		));
 
 		// Delete children
 		$db->delete('transactions', array('parent_transaction_id' => $transaction->id));

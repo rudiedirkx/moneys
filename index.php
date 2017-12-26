@@ -9,8 +9,8 @@ $export = isset($_GET['export']);
 if ( isset($_POST['check']) ) {
 	if ( $tags = trim($_POST['add_tag']) ) {
 		$db->begin();
-		foreach (Transaction::splitTags($tags) as $tag) {
-			$tagId = Transaction::ensureTag($tag);
+		foreach ( Tag::split($tags) as $tag ) {
+			$tagId = Tag::ensure($tag);
 
 			foreach ( $_POST['check'] as $trId ) {
 				Transaction::tag($trId, $tagId);
@@ -19,22 +19,23 @@ if ( isset($_POST['check']) ) {
 		$db->commit();
 	}
 
-	// exit;
 	return do_redirect();
 }
 
-else if ( isset($_POST['category']) ) {
+elseif ( isset($_POST['category']) ) {
 	$db->begin();
+
+	Transaction::all(['id' => array_keys($_POST['category'])]);
 
 	// Save category dropdowns
 	foreach ( $_POST['category'] as $trId => $catId ) {
-		$db->update('transactions', array('category_id' => $catId ?: null), array('id' => $trId));
+		Transaction::find($trId)->update(['category_id' => $catId]);
 	}
 
 	// Save new tags
 	foreach ( (array) @$_POST['trtags'] as $trId => $tags ) {
 		foreach ( $tags as $tag ) {
-			$tagId = Transaction::ensureTag($tag);
+			$tagId = Tag::ensure($tag);
 			Transaction::tag($trId, $tagId);
 		}
 	}
@@ -87,13 +88,7 @@ $sortColumn = ltrim($sort, '-');
 $pager = $export ? '' : 'LIMIT ' . $perPage . ' OFFSET ' . $offset;
 $query = $condSql . ' 1 AND ignore = 0 ORDER BY ' . $sortColumn . ' ' . $sortDirection . ', ABS(amount) DESC ' . $pager;
 // echo $query . "\n";
-$transactions = $db->select('transactions', $query, null, 'Transaction')->all();
-// print_r($transactions);
-
-$transactions = array_reduce($transactions, function($transactions, $transaction) {
-	$transaction->tags = array();
-	return $transactions + array($transaction->id => $transaction);
-}, array());
+$transactions = Transaction::all($query);
 // print_r($transactions);
 
 $tids = array_keys($transactions);
@@ -114,11 +109,7 @@ $years = array_reduce(range(0, 60), function($months, $offset) {
 $tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 // print_r($tags);
 
-$tagged = $db->select('tagged', array('transaction_id' => $tids))->all();
-foreach ( $tagged as $record ) {
-	$transactions[ $record->transaction_id ]->tags[] = $tags[ $record->tag_id ];
-}
-// print_r($transactions);
+Tag::decorateTransactions($transactions, $tags);
 
 // Export as CSV
 if ( $export ) {

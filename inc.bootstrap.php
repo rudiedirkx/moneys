@@ -17,8 +17,8 @@ if ( !$db ) {
 	exit("<p>No db...</p>");
 }
 
-// Peripherals
-require 'inc.transaction.php';
+db_generic_model::$_db = $db;
+require 'inc.models.php';
 
 // Verify db schema
 $schema = require 'inc.schema.php';
