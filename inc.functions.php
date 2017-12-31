@@ -1,7 +1,7 @@
 <?php
 
 function do_auth() {
-	$ips = preg_split('#\s+#', trim(MONEYS_LOCAL_IPS));
+	$ips = MONEYS_LOCAL_IPS;
 	$regex = '#^(' . str_replace('.', '\\.', implode('|', $ips)) . ')#';
 	if ( preg_match($regex, $_SERVER['REMOTE_ADDR']) ) {
 		return true;
@@ -42,7 +42,7 @@ function do_auth() {
 }
 
 function check_auth($username, &$password) {
-	$auths = preg_split('#\s+#', trim(MONEYS_LOCAL_AUTHS));
+	$auths = MONEYS_LOCAL_AUTHS;
 	foreach ($auths as $auth) {
 		list($check_username, $check_password) = explode(':', $auth);
 		if ($check_username == $username) {

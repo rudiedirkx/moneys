@@ -26,8 +26,8 @@ class Tag extends Model {
 	}
 
 	static function ensure( $tag ) {
-		if ( $tag = self::get($tag) ) {
-			return $tag->id;
+		if ( $object = self::get($tag) ) {
+			return $object->id;
 		}
 
 		return self::insert(compact('tag'));
