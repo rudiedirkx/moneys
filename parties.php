@@ -32,7 +32,7 @@ if ( isset($_POST['parties']) ) {
 
 require 'tpl.header.php';
 
-$parties[] = new Party(array('name' => ''));
+$parties[] = new Party(array('id' => 0, 'name' => ''));
 
 $categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
 

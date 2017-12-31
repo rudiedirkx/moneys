@@ -1,3 +1,4 @@
+<hr />
 
 <details>
 	<summary>Queries (<?= count($db->queries) ?>)</summary>

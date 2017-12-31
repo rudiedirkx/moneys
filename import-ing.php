@@ -2,6 +2,8 @@
 
 require 'inc.bootstrap.php';
 
+$account = Account::find(@$_GET['account']);
+
 if ( isset($_FILES['csv']) ) {
 	header('Content-type: text/plain');
 
@@ -17,7 +19,7 @@ if ( isset($_FILES['csv']) ) {
 	$directions = array('Af' => -1, 'Bij' => 1);
 	$types = array('BA' => 'manual', 'GM' => 'atm', 'IC' => 'auto', 'VZ' => 'auto', 'GT' => 'manual', 'OV' => 'manual');
 
-	$records = array_map(function($tr) use ($directions, $types) {
+	$records = array_map(function($tr) use ($account, $directions, $types) {
 		$dir = $directions[ trim($tr['Af Bij']) ];
 		$record = array(
 			'date' => get_date_from_ymd($tr['Datum']),
@@ -26,6 +28,7 @@ if ( isset($_FILES['csv']) ) {
 			'type' => @$types[ trim($tr['Code']) ],
 			'account' => preg_replace('#\s+#', '', trim($tr['Tegenrekening'])) ?: null,
 			'amount' => $dir * get_amount_from_eu($tr['Bedrag (EUR)']),
+			'account_id' => $account ? $account->id : null,
 		);
 
 		$record['hash'] = get_transaction_hash($record);
@@ -70,8 +73,14 @@ if ( isset($_FILES['csv']) ) {
 require 'tpl.header.php';
 
 ?>
-<form method="post" action enctype="multipart/form-data">
+<h1>
+	Import transactions
+	<? if ($account): ?>
+		into <em><?= html($account) ?></em>
+	<? endif ?>
+</h1>
 
+<form method="post" action="<?= $account ? "?account={$account->id}" : '' ?>" enctype="multipart/form-data">
 	<p>Upload CSV: <input type="file" name="csv" /></p>
 
 	<p><button>Import</button></p>

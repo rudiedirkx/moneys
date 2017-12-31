@@ -1,7 +1,7 @@
 <?php
 
 return array(
-	'version' => 2,
+	'version' => 5,
 	'tables' => array(
 		'categories' => array(
 			'columns' => array(
@@ -16,6 +16,16 @@ return array(
 			),
 		),
 
+		'accounts' => array(
+			'columns' => array(
+				'id' => array('pk' => true),
+				'name',
+				'term_usage' => array('default' => 'Usage'),
+				'term_payments' => array('default' => 'Payments'),
+				'info',
+			),
+		),
+
 		'transactions' => array(
 			'columns' => array(
 				'id' => array('pk' => true),
@@ -26,6 +36,7 @@ return array(
 				'type' => array('null' => true),
 				'account' => array('null' => true),
 				'amount' => array('null' => false, 'type' => 'real'),
+				'account_id' => array('unsigned' => true, 'null' => true, 'references' => array('accounts', 'id')),
 				'category_id' => array('unsigned' => true, 'null' => true, 'references' => array('categories', 'id')),
 				'other_party_id' => array('unsigned' => true, 'null' => true, 'references' => array('parties', 'id')),
 				'parent_transaction_id' => array('unsigned' => true, 'null' => true, 'references' => array('transactions', 'id')),

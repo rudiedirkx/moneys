@@ -85,8 +85,8 @@ function get_amount_from_eu( $amount ) {
 
 function get_transaction_hash($transaction) {
 	$transaction = (array)$transaction;
-	$hashable = array_intersect_key($transaction, array_flip(array('date', 'type', 'account', 'amount')));
-	$hashable['amount'] = (float)$hashable['amount'];
+	$hashable = array_intersect_key($transaction, array_flip(array('account_id', 'date', 'type', 'account', 'amount')));
+	$hashable['amount'] = (float) $hashable['amount'];
 	$hashable['account'] = get_safe_accountno($hashable['account']);
 	$hashable['sumdesc'] = mb_strtolower(preg_replace('#\s#', '', $transaction['summary'] . ' ' . $transaction['description']));
 	ksort($hashable);

@@ -32,11 +32,13 @@ if ( @$_POST['_action'] == 'unsplit' ) {
 }
 
 // SAVE
-if ( isset($_POST['category_id'], $_POST['notes'], $_POST['tags']) ) {
+if ( isset($_POST['category_id'], $_POST['notes'], $_POST['tags'], $_POST['account_id'], $_POST['ignore']) ) {
 	// Properties
 	$transaction->update(array(
 		'category_id' => $_POST['category_id'],
 		'notes' => trim($_POST['notes']),
+		'account_id' => $_POST['account_id'],
+		'ignore' => (int) $_POST['ignore'],
 	));
 
 	// Tags
@@ -135,7 +137,7 @@ if ( isset($_POST['amount'], $_POST['description'], $_POST['date'], $_POST['cate
 
 		// Save parent
 		$transaction->update(array(
-			'ignore' => 1,
+			'ignore' => Transaction::IGNORE_SPLIT,
 		));
 
 		// Delete children
@@ -154,6 +156,7 @@ if ( isset($_POST['amount'], $_POST['description'], $_POST['date'], $_POST['cate
 
 require 'tpl.header.php';
 
+$accounts = $db->select_fields('accounts', 'id, name', '1 ORDER BY name ASC');
 $categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
 $tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 
@@ -209,7 +212,7 @@ ul.compact {
 			<td><?= $transaction->type ?></td>
 		</tr>
 		<tr>
-			<th>Account</th>
+			<th>Account no</th>
 			<td>
 				<a href="index.php?search=<?= html($transaction->account) ?>"><?= html($transaction->account) ?>
 			</td>
@@ -278,18 +281,37 @@ ul.compact {
 				</ul>
 			</td>
 		</tr>
+		<tr>
+			<th>Account</th>
+			<td>
+				<select name="account_id">
+					<?= html_options($accounts, $transaction->account_id, '--') ?>
+				</select>
+				<? if ($transaction->account_id): ?>
+					<a href="account.php?id=<?= $transaction->account_id ?>">&gt;&gt;</a>
+				<? endif ?>
+			</td>
+		</tr>
+		<tr>
+			<th>Hidden?</th>
+			<td>
+				<select name="ignore">
+					<?= html_options(Transaction::$_ignores, $transaction->ignore, '--') ?>
+				</select>
+			</td>
+		</tr>
 	</table>
 
 	<p>
 		<button name="_action" value="save">Save</button>
 		<button name="_action" value="delete" class="delete">Delete</button>
-		<? if ($transaction->ignore): ?>
+		<? if ($transaction->ignore == Transaction::IGNORE_SPLIT): ?>
 			<button name="_action" value="unsplit" class="delete">Unsplit</button>
 		<? endif ?>
 	</p>
 </form>
 
-<? if (!$transaction->parent_transaction_id): ?>
+<? if (!$transaction->parent_transaction_id && in_array($transaction->ignore, [0, Transaction::IGNORE_SPLIT]) ): ?>
 	<h2>Split transaction by ING CC export</h2>
 
 	<form method="post" action enctype="multipart/form-data">

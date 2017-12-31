@@ -116,7 +116,12 @@ body:not(.hide-sumdesc) .show-sumdesc {
 						</div>
 					</td>
 					<td class="category <? if (!$tr->category_id): ?>empty<? endif ?>">
-						<select name="category[<?= $tr->id ?>]"><?= html_options($categories, $tr->selected_category_id, '--') ?></select>
+						<?if (!$tr->ignore || $tr->category_id): ?>
+							<select name="category[<?= $tr->id ?>]"><?= html_options($categories, $tr->selected_category_id, '--') ?></select>
+						<? endif ?>
+						<?if ($tr->ignore): ?>
+							<img src="warning.png" title="<?= html($tr->ignore_label) ?>" />
+						<? endif ?>
 					</td>
 					<td>
 						<? if ($tr->is_new): ?>

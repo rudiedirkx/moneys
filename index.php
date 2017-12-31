@@ -45,10 +45,18 @@ elseif ( isset($_POST['category']) ) {
 	return do_redirect();
 }
 
-$conditions = array();
+$conditions = array(
+	'ignore' => 0,
+);
+if ( !empty($_GET['account']) ) {
+	$conditions['account_id'] = abs($_GET['account']);
+
+	// Show some hidden transactions
+	unset($conditions['ignore']);
+	$conditions[] = $db->replaceholders($_GET['account'] < 0 ? 'ignore = ?' : 'ignore <> ?', [Transaction::IGNORE_ACCOUNT_PAY_FOR_BALANCE]);
+}
 if ( !empty($_GET['category']) ) {
-	$cat = $_GET['category'] == -1 ? null : $_GET['category'];
-	$conditions[] = $db->stringifyConditions(array('category_id' => $cat));
+	$conditions['category_id'] = $_GET['category'] == -1 ? null : $_GET['category'];
 }
 if ( !empty($_GET['tag']) ) {
 	$conditions[] = $db->replaceholders('id IN (SELECT transaction_id FROM tagged WHERE tag_id = ?)', array($_GET['tag']));
@@ -63,40 +71,32 @@ if ( !empty($_GET['year']) ) {
 	$conditions[] = $db->replaceholders('date LIKE ?', array($_GET['year'] . '-_%'));
 }
 if ( !empty($_GET['type']) ) {
-	$type = $_GET['type'] == -1 ? null : $_GET['type'];
-	$conditions[] = $db->stringifyConditions(array('type' => $type));
+	$conditions['type'] = $_GET['type'] == -1 ? null : $_GET['type'];
 }
 if ( !empty($_GET['search']) ) {
 	$q = '%' . $_GET['search'] . '%';
 	$conditions[] = $db->replaceholders('(description LIKE ? OR summary LIKE ? OR notes LIKE ? OR account LIKE ?)', array($q, $q, $q, $q));
 }
-// print_r($conditions);
-$condSql = $conditions ? '(' . implode(' AND ', $conditions) . ') AND' : '';
 if ( $conditions ) {
 	$perPage = 500;
 }
 
 $offset = $page * $perPage;
-$totalRecords = $db->count('transactions', $condSql . ' 1 AND ignore = 0');
+$totalRecords = $db->count('transactions', $conditions);
 $pages = ceil($totalRecords / $perPage);
 
 $sort = isset($_GET['sort']) ? preg_replace('#[^\w-]#', '', $_GET['sort']) : '-date';
-// var_dump($sort);
 $sortDirection = $sort[0] == '-' ? 'DESC' : 'ASC';
 $sortColumn = ltrim($sort, '-');
 
 $pager = $export ? '' : 'LIMIT ' . $perPage . ' OFFSET ' . $offset;
-$query = $condSql . ' 1 AND ignore = 0 ORDER BY ' . $sortColumn . ' ' . $sortDirection . ', ABS(amount) DESC ' . $pager;
-// echo $query . "\n";
+$query = ($db->stringifyConditions($conditions) ?: '1') . ' ORDER BY ' . $sortColumn . ' ' . $sortDirection . ', ABS(amount) DESC ' . $pager;
 $transactions = Transaction::all($query);
-// print_r($transactions);
 
 $tids = array_keys($transactions);
-// print_r($tids);
 
 $categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
 Transaction::$_categories = $categories;
-// print_r($categories);
 
 $years = array_reverse(range(date('Y')-5, date('Y')));
 $years = array_reduce(range(0, 60), function($months, $offset) {
@@ -107,8 +107,6 @@ $years = array_reduce(range(0, 60), function($months, $offset) {
 }, array());
 
 $tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
-// print_r($tags);
-
 Tag::decorateTransactions($transactions, $tags);
 
 // Export as CSV
@@ -146,6 +144,11 @@ $grouper = 'month';
 include 'tpl.transactions.php';
 
 ?>
+
+<details>
+	<summary>Conditions</summary>
+	<pre><?= html(print_r($conditions, 1)) ?></pre>
+</details>
 
 <details>
 	<summary>Query</summary>

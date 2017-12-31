@@ -76,7 +76,7 @@ if ( $expandYear ) {
 
 require 'tpl.header.php';
 
-$categories[] = new Category(array('name' => ''));
+$categories[] = new Category(array('id' => 0, 'name' => ''));
 
 $months = cache_months();
 

@@ -53,6 +53,10 @@ body > .main-menu {
 .c {
 	text-align: center;
 }
+.descr {
+	color: #aaa;
+	font-style: italic;
+}
 
 tr.dir-in {
 	background-color: #dfd;
@@ -66,6 +70,9 @@ td.amount {
 	text-align: right;
 }
 
+td.category {
+	text-align: center;
+}
 tr.dir-out td.category.empty {
 	background: #faa;
 }
@@ -101,6 +108,8 @@ select:focus {
 	<a href="categories.php">Categories</a>
 	|
 	<a href="tags.php">Tags</a>
+	|
+	<a href="accounts.php">Accounts</a>
 	|
 	<a href="doubles.php">Doubles</a>
 	|

@@ -2,7 +2,7 @@
 
 require 'inc.bootstrap.php';
 
-$undouble = Tag::get('undouble');
+$undouble = Tag::ensure('undouble');
 $transactions = Transaction::query("
 	SELECT t.*
 	FROM (
@@ -16,10 +16,13 @@ $transactions = Transaction::query("
 		ON (x.date = t.date AND COALESCE(x.account, '') = COALESCE(t.account, '') AND x.amount = t.amount)
 	WHERE t.ignore = 0 AND NOT EXISTS (SELECT * FROM tagged WHERE transaction_id = t.id AND tag_id = ?)
 	ORDER BY date DESC, account, amount
-", [$undouble->id]);
+", [$undouble]);
 
 $categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
 Transaction::$_categories = $categories;
+
+$tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
+Tag::decorateTransactions($transactions, $tags);
 
 require 'tpl.header.php';
 

@@ -52,7 +52,49 @@ class Party extends Model {
 	}
 }
 
+class Account extends Model {
+	static public $_table = 'accounts';
+
+	function get_usage_query() {
+		return self::$_db->replaceholders('account_id = ? AND ignore <> ?', [$this->id, Transaction::IGNORE_ACCOUNT_PAY_FOR_BALANCE]);
+	}
+
+	function get_num_usage_transactions() {
+		return self::$_db->count('transactions', $this->usage_query);
+	}
+
+	function get_usage_balance() {
+		return (float) self::$_db->select_one('transactions', 'sum(amount)', $this->usage_query);
+	}
+
+	function get_payments_query() {
+		return self::$_db->replaceholders('account_id = ? AND ignore = ?', [$this->id, Transaction::IGNORE_ACCOUNT_PAY_FOR_BALANCE]);
+	}
+
+	function get_num_payments_transactions() {
+		return self::$_db->count('transactions', $this->payments_query);
+	}
+
+	function get_payments_balance() {
+		return (float) self::$_db->select_one('transactions', 'sum(amount)', $this->payments_query);
+	}
+
+	function __toString() {
+		return $this->name;
+	}
+}
+
 class Transaction extends Model {
+	const IGNORE_SPLIT = 1;
+	const IGNORE_ACCOUNT_BALANCE = 2; // Positive, on the Account's balance
+	const IGNORE_ACCOUNT_PAY_FOR_BALANCE = 3; // Negative, on the Main account
+
+	static public $_ignores = [
+		self::IGNORE_SPLIT => 'split',
+		self::IGNORE_ACCOUNT_BALANCE => 'balance (positive on Account)',
+		self::IGNORE_ACCOUNT_PAY_FOR_BALANCE => 'pay for balance (negative on Main)',
+	];
+
 	static public $_table = 'transactions';
 
 	static public $_categories = array();
@@ -75,6 +117,8 @@ class Transaction extends Model {
 		parent::presave($data);
 
 		isset($data['category_id']) and empty($data['category_id']) and $data['category_id'] = null;
+
+		isset($data['account_id']) and empty($data['account_id']) and $data['account_id'] = null;
 	}
 
 	static function insert( array $data ) {
@@ -113,6 +157,10 @@ class Transaction extends Model {
 		if ( $dbTransaction ) {
 			self::$_db->commit();
 		}
+	}
+
+	function get_ignore_label() {
+		return $this->ignore ? self::$_ignores[$this->ignore] : '';
 	}
 
 	function get_notes_summary() {
