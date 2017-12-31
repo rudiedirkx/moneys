@@ -11,11 +11,8 @@ if ( !$db ) {
 	exit("<p>No db...</p>");
 }
 
+$db->ensureSchema(require 'inc.schema.php');
 db_generic_model::$_db = $db;
-
-// Verify db schema
-$schema = require 'inc.schema.php';
-// $db->schema($schema);
 
 // Start UTF-8 everywhere, always
 mb_internal_encoding('utf-8');
