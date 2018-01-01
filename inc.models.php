@@ -101,6 +101,21 @@ class Transaction extends Model {
 
 	// public $tags = array();
 
+	static function allMonths() {
+		$months = self::$_db->select_fields(self::$_table, "strftime('%Y-%m-01', date) d", '1 group by d order by d desc');
+		$options = [];
+		$lastYear = 0;
+		foreach ( $months as $date ) {
+			$year = (int) $date;
+			if ( $year != $lastYear ) {
+				$options[$year] = $year;
+				$lastYear = $year;
+			}
+			$options[substr($date, 0, 7)] = date('Y - M', strtotime($date));
+		}
+		return $options;
+	}
+
 	static function tag( $transactionId, $tagId ) {
 		try {
 			self::$_db->insert('tagged', array(

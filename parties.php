@@ -7,11 +7,10 @@ $parties = Party::all('1 ORDER BY name ASC');
 if ( isset($_POST['parties']) ) {
 	foreach ( $_POST['parties'] as $id => $data ) {
 		$name = trim($data['name']);
+		$party = Party::find($id);
 
 		// Existing
-		if ( $id ) {
-			$party = Party::find($id);
-
+		if ( $party ) {
 			// Update
 			if ( $name ) {
 				$party->update($data);
