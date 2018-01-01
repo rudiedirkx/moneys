@@ -1,5 +1,4 @@
 /vendor/
 /db/
-/exports/*.csv
-/exports/*.json
+/exports/
 /env.php
