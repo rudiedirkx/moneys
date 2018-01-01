@@ -21,12 +21,13 @@ if ( isset($_FILES['csv']) ) {
 
 	$records = array_map(function($tr) use ($account, $directions, $types) {
 		$dir = $directions[ trim($tr['Af Bij']) ];
+		$type = trim(@$tr['Code']);
 		$record = array(
 			'date' => get_date_from_ymd($tr['Datum']),
 			'summary' => trim($tr['Naam / Omschrijving']),
-			'description' => trim($tr['Mededelingen']),
-			'type' => @$types[ trim($tr['Code']) ],
-			'account' => preg_replace('#\s+#', '', trim($tr['Tegenrekening'])) ?: null,
+			'description' => trim(@$tr['Mededelingen']),
+			'type' => @$types[$type] ?: $type,
+			'account' => preg_replace('#\s+#', '', trim(@$tr['Tegenrekening'])) ?: null,
 			'amount' => $dir * get_amount_from_eu($tr['Bedrag (EUR)']),
 			'account_id' => $account ? $account->id : null,
 		);

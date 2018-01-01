@@ -72,7 +72,14 @@ function do_404() {
 }
 
 function get_date_from_ymd( $date ) {
-	return substr($date, 0, 4) . '-' . substr($date, 4, 2) . '-' . substr($date, 6, 2);
+	if ( preg_match('#^(\d\d\d\d)(\d\d)(\d\d)$#', $date, $match) ) {
+		return "$match[1]-$match[2]-$match[3]";
+	}
+	elseif ( preg_match('#^(\d\d)\-(\d\d)\-(\d\d\d\d)$#', $date, $match) ) {
+		return "$match[3]-$match[2]-$match[1]";
+	}
+
+	throw new InvalidArgumentException("Unknown date format: '$date'");
 }
 
 function get_date_from_d_m_y( $date ) {

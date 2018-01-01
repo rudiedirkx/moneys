@@ -64,7 +64,7 @@ class Account extends Model {
 	}
 
 	function get_usage_balance() {
-		return (float) self::$_db->select_one('transactions', 'sum(amount)', $this->usage_query);
+		return round(self::$_db->select_one('transactions', 'sum(amount)', $this->usage_query), 2);
 	}
 
 	function get_payments_query() {
@@ -76,7 +76,7 @@ class Account extends Model {
 	}
 
 	function get_payments_balance() {
-		return (float) self::$_db->select_one('transactions', 'sum(amount)', $this->payments_query);
+		return round(self::$_db->select_one('transactions', 'sum(amount)', $this->payments_query), 2);
 	}
 
 	function __toString() {
@@ -157,6 +157,10 @@ class Transaction extends Model {
 		if ( $dbTransaction ) {
 			self::$_db->commit();
 		}
+	}
+
+	function get_hide_category_dropdown() {
+		return $this->ignore && !$this->category_id;
 	}
 
 	function get_ignore_label() {

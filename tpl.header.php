@@ -57,6 +57,10 @@ body > .main-menu {
 	color: #aaa;
 	font-style: italic;
 }
+.hidden {
+	position: absolute;
+	visibility: hidden;
+}
 
 tr.dir-in {
 	background-color: #dfd;

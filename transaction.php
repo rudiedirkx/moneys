@@ -237,9 +237,12 @@ ul.compact {
 		<tr>
 			<th>Category</th>
 			<td>
-				<select name="category_id" class="<? if (!$transaction->category_id): ?>error<? endif ?>">
+				<select name="category_id" class="<?= !$transaction->category_id ? 'error' : '' ?> <?= $transaction->hide_category_dropdown ? 'hidden' : '' ?>">
 					<?= html_options($categories, $transaction->selected_category_id, '-- Unknown') ?>
 				</select>
+				<? if ($transaction->hide_category_dropdown): ?>
+					<img src="warning.png" title="<?= html($transaction->ignore_label) ?>" />
+				<? endif ?>
 			</td>
 		</tr>
 		<tr>
