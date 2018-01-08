@@ -19,7 +19,9 @@ if ( isset($_FILES['csv']) ) {
 	$directions = array('Af' => -1, 'Bij' => 1);
 	$types = array('BA' => 'manual', 'GM' => 'atm', 'IC' => 'auto', 'VZ' => 'auto', 'GT' => 'manual', 'OV' => 'manual');
 
-	$records = array_map(function($tr) use ($account, $directions, $types) {
+	$batch = time();
+
+	$records = array_map(function($tr) use ($account, $batch, $directions, $types) {
 		$dir = $directions[ trim($tr['Af Bij']) ];
 		$type = trim(@$tr['Code']);
 		$record = array(
@@ -30,6 +32,7 @@ if ( isset($_FILES['csv']) ) {
 			'account' => preg_replace('#\s+#', '', trim(@$tr['Tegenrekening'])) ?: null,
 			'amount' => $dir * get_amount_from_eu($tr['Bedrag (EUR)']),
 			'account_id' => $account ? $account->id : null,
+			'batch' => $batch,
 		);
 
 		$record['hash'] = get_transaction_hash($record);
@@ -62,6 +65,10 @@ if ( isset($_FILES['csv']) ) {
 			$inserts++;
 			$new[ $record['hash'] ] = $record['hash'];
 		}
+	}
+
+	if ( !$account && count($records) == $inserts ) {
+		exit("No doubles. That can't be right...");
 	}
 
 	$db->commit();

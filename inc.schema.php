@@ -1,7 +1,7 @@
 <?php
 
 return array(
-	'version' => 5,
+	'version' => 6,
 	'tables' => array(
 		'categories' => array(
 			'columns' => array(
@@ -30,6 +30,7 @@ return array(
 			'columns' => array(
 				'id' => array('pk' => true),
 				'hash' => array('unique' => true),
+				'batch' => array('unsigned' => true, 'null' => true, 'default' => null),
 				'date' => array('null' => false, 'default' => ''),
 				'summary' => array('null' => false, 'default' => ''),
 				'description' => array('null' => false, 'default' => ''),
