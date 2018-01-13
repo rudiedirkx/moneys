@@ -11,6 +11,11 @@
             "inc.functions.php"
         ]
     },
+    "scripts": {
+        "pre-install-cmd": [
+            "php -r \"file_exists('env.php') or copy('env.php.orig', 'env.php');\""
+        ]
+    },
     "license": "MIT",
     "authors": [
         {
