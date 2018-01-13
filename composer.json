@@ -13,6 +13,7 @@
     },
     "scripts": {
         "pre-install-cmd": [
+            "php -r \"is_dir('db') or mkdir('db') and chmod('db', 0777);\"",
             "php -r \"file_exists('env.php') or copy('env.php.orig', 'env.php');\""
         ]
     },
