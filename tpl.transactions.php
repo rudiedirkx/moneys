@@ -120,7 +120,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 							<select name="category[<?= $tr->id ?>]"><?= html_options($categories, $tr->selected_category_id, '--') ?></select>
 						<? endif ?>
 						<?if ($tr->ignore): ?>
-							<img src="warning.png" title="<?= html($tr->ignore_label) ?>" />
+							<img src="warning.png" title="<?= html($tr->ignore_label) ?> - Hidden transactions shouldn't have a Category" />
 						<? endif ?>
 					</td>
 					<td>

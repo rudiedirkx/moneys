@@ -71,7 +71,12 @@ if ( !empty($_GET['year']) ) {
 	$conditions[] = $db->replaceholders('date LIKE ?', array($_GET['year'] . '-_%'));
 }
 if ( !empty($_GET['type']) ) {
-	$conditions['type'] = $_GET['type'] == -1 ? null : $_GET['type'];
+	if ( $_GET['type'] == 'splitsource' ) {
+		$conditions['ignore'] = Transaction::IGNORE_SPLIT;
+	}
+	else {
+		$conditions['type'] = $_GET['type'] == -1 ? null : $_GET['type'];
+	}
 }
 if ( !empty($_GET['search']) ) {
 	$q = '%' . $_GET['search'] . '%';
