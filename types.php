@@ -54,6 +54,8 @@ require 'tpl.header.php';
 		<? endforeach ?>
 	</tbody>
 </table>
+
+<p><a href="index.php?type=splitsource">Split <strong>source</strong> transactions</a></p>
 <?php
 
 require 'tpl.footer.php';
