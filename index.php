@@ -48,6 +48,9 @@ elseif ( isset($_POST['category']) ) {
 $conditions = array(
 	'ignore' => 0,
 );
+if ( !empty($_GET['ignore']) ) {
+	$conditions['ignore'] = $_GET['ignore'];
+}
 if ( !empty($_GET['account']) ) {
 	$conditions['account_id'] = abs($_GET['account']);
 
@@ -71,12 +74,7 @@ if ( !empty($_GET['year']) ) {
 	$conditions[] = $db->replaceholders('date LIKE ?', array($_GET['year'] . '-_%'));
 }
 if ( !empty($_GET['type']) ) {
-	if ( $_GET['type'] == 'splitsource' ) {
-		$conditions['ignore'] = Transaction::IGNORE_SPLIT;
-	}
-	else {
-		$conditions['type'] = $_GET['type'] == -1 ? null : $_GET['type'];
-	}
+	$conditions['type'] = $_GET['type'] == -1 ? null : $_GET['type'];
 }
 if ( !empty($_GET['search']) ) {
 	$q = '%' . $_GET['search'] . '%';
@@ -123,6 +121,9 @@ require 'tpl.header.php';
 ?>
 <form method="get" action>
 	<input type="hidden" name="sort" value="<?= html($sort) ?>" />
+	<input type="hidden" name="type" value="<?= html(@$_GET['type']) ?>" />
+	<input type="hidden" name="account" value="<?= html(@$_GET['account']) ?>" />
+	<input type="hidden" name="ignore" value="<?= html(@$_GET['ignore']) ?>" />
 	<p>
 		Category: <select name="category"><?= html_options(array('-1' => '-- none') + $categories, @$_GET['category'], '-- all') ?></select>
 		Tag: <select name="tag"><?= html_options($tags, @$_GET['tag'], '-- all') ?></select>

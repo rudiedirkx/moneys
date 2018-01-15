@@ -55,7 +55,13 @@ require 'tpl.header.php';
 	</tbody>
 </table>
 
-<p><a href="index.php?type=splitsource">Split <strong>source</strong> transactions</a></p>
+<p>Hidden source transactions:</p>
+
+<ul>
+	<? foreach (Transaction::$_ignores as $key => $name): ?>
+		<li><a href="index.php?ignore=<?= html($key) ?>"><?= html($name) ?></a></li>
+	<? endforeach ?>
+</ul>
 <?php
 
 require 'tpl.footer.php';
