@@ -32,14 +32,19 @@ if ( @$_POST['_action'] == 'unsplit' ) {
 }
 
 // SAVE
-if ( isset($_POST['category_id'], $_POST['notes'], $_POST['tags'], $_POST['account_id'], $_POST['ignore']) ) {
+if ( isset($_POST['category_id'], $_POST['notes'], $_POST['summary'], $_POST['description'], $_POST['tags'], $_POST['account_id'], $_POST['ignore']) ) {
 	// Properties
-	$transaction->update(array(
+	$update = array(
 		'category_id' => $_POST['category_id'],
 		'notes' => trim($_POST['notes']),
+		'summary' => trim($_POST['summary']),
+		'description' => trim($_POST['description']),
 		'account_id' => $_POST['account_id'],
 		'ignore' => (int) $_POST['ignore'],
-	));
+	);
+	$all = $update + get_object_vars($transaction);
+	$update['hash'] = get_transaction_hash($all);
+	$transaction->update($update);
 
 	// Tags
 	$transaction->saveTags($_POST['tags']);
@@ -219,11 +224,15 @@ ul.compact {
 		</tr>
 		<tr>
 			<th>Summary</th>
-			<td><?= html($transaction->summary) ?></td>
+			<td>
+				<textarea name="summary" rows="3" style="width: 100%; display: block"><?= html(trim($transaction->summary)) ?></textarea>
+			</td>
 		</tr>
 		<tr>
 			<th>Description</th>
-			<td><?= html($transaction->description) ?></td>
+			<td>
+				<textarea name="description" rows="3" style="width: 100%; display: block"><?= html(trim($transaction->description)) ?></textarea>
+			</td>
 		</tr>
 		<tr>
 			<th>
@@ -231,7 +240,7 @@ ul.compact {
 				<div style="font-weight: normal; margin-top: .3em; white-space: nowrap">(first line will be visible on overviews)</div>
 			</th>
 			<td>
-				<textarea name="notes" rows="4" style="width: 100%; display: block"><?= html($transaction->notes) ?></textarea>
+				<textarea name="notes" rows="3" style="width: 100%; display: block"><?= html(trim($transaction->notes)) ?></textarea>
 			</td>
 		</tr>
 		<tr>

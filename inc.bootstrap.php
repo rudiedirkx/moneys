@@ -1,8 +1,8 @@
 <?php
 
 require 'env.php';
-
 require __DIR__ . '/vendor/autoload.php';
+
 do_auth();
 
 // Connect to db

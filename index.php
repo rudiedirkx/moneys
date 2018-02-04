@@ -145,6 +145,8 @@ include 'tpl.transactions.php';
 
 ?>
 
+<p><a href="hashes.php">Hashes</a></p>
+
 <details>
 	<summary>Conditions</summary>
 	<pre><?= html(print_r($conditions, 1)) ?></pre>
