@@ -19,6 +19,8 @@ isset($pageTitle) or $pageTitle = substr(basename($_SERVER['PHP_SELF']), 0, -4);
 <style>
 * {
 	box-sizing: border-box;
+	-webkit-text-size-adjust: none;
+	text-size-adjust: none;
 }
 table {
 	border-collapse: collapse;
