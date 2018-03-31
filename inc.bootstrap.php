@@ -3,7 +3,7 @@
 require 'env.php';
 require __DIR__ . '/vendor/autoload.php';
 
-do_auth();
+// do_auth();
 
 // Connect to db
 $db = db_sqlite::open(array('database' => __DIR__ . '/db/moneys.sqlite3'));

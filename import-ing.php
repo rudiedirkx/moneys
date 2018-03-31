@@ -8,14 +8,11 @@ if ( isset($_FILES['csv']) ) {
 	header('Content-type: text/plain');
 
 	$data = csv_read_doc(file_get_contents($_FILES['csv']['tmp_name']), true);
-// var_export($data);
-// exit;
 
 	if ( headers_sent() ) {
 		exit('Error # ' . __LINE__);
 	}
 
-	// $directions = array('Af' => 'out', 'Bij' => 'in');
 	$directions = array('Af' => -1, 'Bij' => 1);
 	$types = array('BA' => 'manual', 'GM' => 'atm', 'IC' => 'auto', 'VZ' => 'auto', 'GT' => 'manual', 'OV' => 'manual');
 
@@ -39,16 +36,12 @@ if ( isset($_FILES['csv']) ) {
 
 		return $record;
 	}, $data);
-// print_r($records);
-// exit;
 
 	if ( headers_sent() ) {
 		exit('Error # ' . __LINE__);
 	}
 
 	$existingHashes = $db->select_fields('transactions', 'hash, hash', '1');
-// print_r($existingHashes);
-// exit;
 
 	$db->begin();
 
@@ -71,9 +64,14 @@ if ( isset($_FILES['csv']) ) {
 		exit("No doubles. That can't be right...");
 	}
 
-	$db->commit();
-
 	echo "Saved " . $inserts . " of " . count($records) . " (" . (count($records) - $inserts) . " doubles)\n";
+
+	if ( empty($_POST['preview']) ) {
+		$db->commit();
+	}
+	else {
+		echo "PREVIEW - NOT SAVED\n";
+	}
 
 	exit;
 }
@@ -90,6 +88,7 @@ require 'tpl.header.php';
 
 <form method="post" action="<?= $account ? "?account={$account->id}" : '' ?>" enctype="multipart/form-data">
 	<p>Upload CSV: <input type="file" name="csv" /></p>
+	<p><label><input type="checkbox" name="preview" checked /> Preview</label></p>
 
 	<p><button>Import</button></p>
 
