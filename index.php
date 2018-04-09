@@ -71,7 +71,14 @@ if ( @$_GET['min'] != '' && @$_GET['max'] != '' ) {
 	$conditions[] = $db->replaceholders('amount BETWEEN ? AND ?', array($min, $max));
 }
 if ( !empty($_GET['year']) ) {
-	$conditions[] = $db->replaceholders('date LIKE ?', array($_GET['year'] . '-_%'));
+	if ( preg_match('#^(\d{4})-q(\d)$#', $_GET['year'], $match) ) {
+		$qend = $match[1] . '-' . str_pad($match[2] * 3, 2, '0', STR_PAD_LEFT) . '-31';
+		$qstart = $match[1] . '-' . str_pad($match[2] * 3 - 2, 2, '0', STR_PAD_LEFT) . '-01';
+		$conditions[] = $db->replaceholders('date BETWEEN ? AND ?', [$qstart, $qend]);
+	}
+	else {
+		$conditions[] = $db->replaceholders('date LIKE ?', [$_GET['year'] . '-_%']);
+	}
 }
 if ( !empty($_GET['type']) ) {
 	$conditions['type'] = $_GET['type'] == -1 ? null : $_GET['type'];
@@ -128,7 +135,7 @@ require 'tpl.header.php';
 		Category: <select name="category"><?= html_options(array('-1' => '-- none') + $categories, @$_GET['category'], '-- all') ?></select>
 		Tag: <select name="tag"><?= html_options($tags, @$_GET['tag'], '-- all') ?></select>
 		Amount: <input name="min" value="<?= @$_GET['min'] ?>" size="4" /> - <input name="max" value="<?= @$_GET['max'] ?>" size="4" />
-		Year: <select name="year"><?= html_options($years, @$_GET['year'], '-- all') ?></select>
+		Period: <select name="year"><?= html_options($years, @$_GET['year'], '-- all') ?></select>
 		Search: <input id="search-transactions" type="search" name="search" value="<?= @$_GET['search'] ?>" placeholder="Summ, Desc, Acc.no, Notes" />
 		<button>&gt;&gt;</button>
 	</p>

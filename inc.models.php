@@ -105,12 +105,22 @@ class Transaction extends Model {
 		$months = self::$_db->select_fields(self::$_table, "strftime('%Y-%m-01', date) d", '1 group by d order by d desc');
 		$options = [];
 		$lastYear = 0;
+		$lastQ = '';
 		foreach ( $months as $date ) {
 			$year = (int) $date;
+			$month = (int) substr($date, 5);
+
 			if ( $year != $lastYear ) {
 				$options[$year] = $year;
 				$lastYear = $year;
 			}
+
+			$q = "$year-q" . ceil($month/3);
+			if ( $q != $lastQ ) {
+				$options[$q] = "$year - Q" . ceil($month/3);
+				$lastQ = $q;
+			}
+
 			$options[substr($date, 0, 7)] = date('Y - M', strtotime($date));
 		}
 		return $options;
