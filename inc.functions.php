@@ -63,6 +63,10 @@ function check_auth($username, &$password) {
 	return false;
 }
 
+function do_400() {
+	header('HTTP/1.1 400 Error');
+}
+
 function do_403() {
 	header('HTTP/1.1 403 Access denied');
 }
@@ -72,7 +76,7 @@ function do_404() {
 }
 
 function get_date_from_ymd( $date ) {
-	if ( preg_match('#^(\d\d\d\d)(\d\d)(\d\d)$#', $date, $match) ) {
+	if ( preg_match('#^(\d\d\d\d)\-?(\d\d)\-?(\d\d)$#', $date, $match) ) {
 		return "$match[1]-$match[2]-$match[3]";
 	}
 	elseif ( preg_match('#^(\d\d)\-(\d\d)\-(\d\d\d\d)$#', $date, $match) ) {

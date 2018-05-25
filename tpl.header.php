@@ -1,6 +1,6 @@
 <?php
 
-$lastImport = $db->select_one('transactions', 'date', "type <> 'split' ORDER BY date DESC LIMIT 1");
+$lastImport = $db->select_one('transactions', 'date', "type NOT IN ('cc', 'split') ORDER BY date DESC LIMIT 1");
 $daysSinceLastImport = $lastImport ? round((time() - strtotime($lastImport)) / 86400) : '?';
 
 isset($pageTitle) or $pageTitle = substr(basename($_SERVER['PHP_SELF']), 0, -4);
@@ -119,9 +119,9 @@ select:focus {
 	|
 	<a href="doubles.php">Doubles</a>
 	|
-	<a href="import-ing.php">Import ING</a>
+	<a href="import.php">Import</a>
 	|
 	<a href="types.php">Types</a>
 	|
-	<span title="Next time, import including <?= $lastImport ?>"><?= $daysSinceLastImport ?> days since last import</span>
+	<span title="Latest transaction: <?= $lastImport ?>"><?= $daysSinceLastImport ?> days since last import</span>
 </p>

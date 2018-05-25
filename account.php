@@ -45,7 +45,7 @@ require 'tpl.header.php';
 	</tr>
 </table>
 
-<p><a href="import-ing.php?account=<?= $account->id ?>">Import transactions</a></p>
+<p><a href="import.php?account=<?= $account->id ?>">Import transactions</a></p>
 
 <details>
 	<summary>Terminology &amp; info</summary>
