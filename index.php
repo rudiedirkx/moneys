@@ -62,7 +62,12 @@ if ( !empty($_GET['category']) ) {
 	$conditions['category_id'] = $_GET['category'] == -1 ? null : $_GET['category'];
 }
 if ( !empty($_GET['tag']) ) {
-	$conditions[] = $db->replaceholders('id IN (SELECT transaction_id FROM tagged WHERE tag_id = ?)', array($_GET['tag']));
+	if ( $_GET['tag'] == -1 ) {
+		$conditions[] = 'NOT EXISTS (SELECT * FROM tagged WHERE transaction_id = transactions.id)';
+	}
+	else {
+		$conditions[] = $db->replaceholders('id IN (SELECT transaction_id FROM tagged WHERE tag_id = ?)', array($_GET['tag']));
+	}
 }
 if ( @$_GET['min'] != '' && @$_GET['max'] != '' ) {
 	$min = (float) $_GET['min'];
@@ -133,7 +138,7 @@ require 'tpl.header.php';
 	<input type="hidden" name="ignore" value="<?= html(@$_GET['ignore']) ?>" />
 	<p>
 		Category: <select name="category"><?= html_options(array('-1' => '-- none') + $categories, @$_GET['category'], '-- all') ?></select>
-		Tag: <select name="tag"><?= html_options($tags, @$_GET['tag'], '-- all') ?></select>
+		Tag: <select name="tag"><?= html_options(array('-1' => '-- none') + $tags, @$_GET['tag'], '-- all') ?></select>
 		Amount: <input name="min" value="<?= @$_GET['min'] ?>" size="4" /> - <input name="max" value="<?= @$_GET['max'] ?>" size="4" />
 		Period: <select name="year"><?= html_options($years, @$_GET['year'], '-- all') ?></select>
 		Search: <input id="search-transactions" type="search" name="search" value="<?= @$_GET['search'] ?>" placeholder="Summ, Desc, Acc.no, Notes" />
