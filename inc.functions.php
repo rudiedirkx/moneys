@@ -1,5 +1,18 @@
 <?php
 
+function make_importer( $config ) {
+	if ( is_string($config) ) {
+		return new $config();
+	}
+
+	if ( is_array($config) && isset($config[0]) ) {
+		$class = array_shift($config);
+		return new $class(...$config);
+	}
+
+	throw new Exception("Invalid importer config: " . var_export($config, true));
+}
+
 function do_auth() {
 	$ips = MONEYS_LOCAL_IPS;
 	$regex = '#^(' . str_replace('.', '\\.', implode('|', $ips)) . ')#';
@@ -203,6 +216,10 @@ function html($str) {
 
 function csv_read_doc( $data, $withHeader = true, $keepCols = array() ) {
 	$keepCols and $keepCols = array_flip($keepCols);
+
+	if ( substr($data, 0, 3) === chr(0xEF) . chr(0xBB) . chr(0xBF) ) {
+		$data = substr($data, 3);
+	}
 
 	$header = array();
 	$csv = array_map(function($line) use (&$header, $withHeader, $keepCols) {

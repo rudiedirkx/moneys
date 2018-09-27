@@ -45,7 +45,7 @@ class Category extends Model {
 class Party extends Model {
 	static public $_table = 'parties';
 
-	static function presave( &$data ) {
+	static function presave( array &$data ) {
 		parent::presave($data);
 
 		isset($data['category_id']) and empty($data['category_id']) and $data['category_id'] = null;
@@ -138,7 +138,7 @@ class Transaction extends Model {
 		}
 	}
 
-	static function presave( &$data ) {
+	static function presave( array &$data ) {
 		parent::presave($data);
 
 		isset($data['category_id']) and empty($data['category_id']) and $data['category_id'] = null;

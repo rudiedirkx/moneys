@@ -6,9 +6,7 @@ require 'inc.bootstrap.php';
 
 $account = Account::find(@$_GET['account']);
 
-$importers = array_map(function($class) {
-	return new $class();
-}, MONEYS_IMPORTERS);
+$importers = array_map('make_importer', MONEYS_IMPORTERS);
 
 if ( isset($_POST['importer'], $_FILES['file']) ) {
 	header('Content-type: text/plain');
