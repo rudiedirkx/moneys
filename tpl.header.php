@@ -3,6 +3,8 @@
 $lastImport = $db->select_one('transactions', 'date', "type NOT IN ('cc', 'split') ORDER BY date DESC LIMIT 1");
 $daysSinceLastImport = $lastImport ? round((time() - strtotime($lastImport)) / 86400) : '?';
 
+$doubles = count(get_doubles());
+
 isset($pageTitle) or $pageTitle = substr(basename($_SERVER['PHP_SELF']), 0, -4);
 
 ?>
@@ -50,6 +52,10 @@ textarea {
 
 body > .main-menu {
 	margin-top: 0;
+}
+.main-menu a {
+	color: #999;
+	text-decoration: none;
 }
 
 .c {
@@ -118,6 +124,7 @@ select:focus {
 	<a href="accounts.php">Accounts</a>
 	|
 	<a href="doubles.php">Doubles</a>
+	<span <? if ($doubles > 0): ?>style="font-weight: bold; color: red"<? endif ?>>(<?= $doubles ?>)</span>
 	|
 	<a href="import.php">Import</a>
 	|
