@@ -11,6 +11,10 @@ abstract class CsvImporter implements Importer {
 	}
 
 	protected function readCsv( $filepath ) {
+		if ( !file_exists($filepath) || !is_readable($filepath) ) {
+			throw new ImportException("Can't read file");
+		}
+
 		$data = csv_read_doc(file_get_contents($filepath), true);
 		$this->requireColumns($data, $this->getMandatoryColumns());
 		return $data;
