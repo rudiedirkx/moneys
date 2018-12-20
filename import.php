@@ -59,22 +59,39 @@ if ( isset($_POST['importer']) && (isset($_FILES['file']) || isset($_POST['filep
 	file_put_contents($filepath, file_get_contents($_FILES['file']['tmp_name']));
 
 	?>
+	<style>
+	td[rowspan] {
+		width: 1px;
+		padding: 3px;
+	}
+	td[rowspan="1"] {
+		background-color: green;
+	}
+	td[rowspan="2"] {
+		background-color: red;
+	}
+	</style>
+
 	<p>
-		<?= count($existingTransactions) ?> transactions exists,
+		<?= count($existingTransactions) ?> / <?= count($transactions) ?> transactions exists,
 		<?= count($transactions) - count($existingTransactions) ?> to import:
 	</p>
-	<table border="1" cellpadding="10">
+
+	<table border="1" cellspacing="0" cellpadding="6">
 		<? foreach ($transactions as $tr):
 			$exists = $existingTransactions[$tr['hash']] ?? null;
 			?>
-			<tr style="background-color: <?= $exists ? '#fdd' : '#dfd' ?>">
+			<tr>
+				<td rowspan="<?= $exists ? 2 : 1 ?>"></td>
 				<td nowrap><?= html($tr['date']) ?></td>
-				<td nowrap align="right"><?= html($tr['amount']) ?></td>
+				<td nowrap align="right" style="background-color: <?= $tr['amount'] < 0 ? '#fdd' : '#dfd' ?>">
+					<?= number_format($tr['amount'], 2) ?>
+				</td>
 				<td><?= html($tr['summary']) ?> <?= html($tr['description']) ?></td>
 				<td></td>
 			</tr>
 			<? if ($exists): ?>
-				<tr style="background-color: #fdd">
+				<tr>
 					<td colspan="2"></td>
 					<td><?= html($exists->sumdesc) ?></td>
 					<td nowrap><a href="transaction.php?id=<?= $exists->id ?>"><?= $exists->id ?></a></td>
