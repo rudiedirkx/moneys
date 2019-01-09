@@ -29,7 +29,7 @@ return array(
 		'transactions' => array(
 			'columns' => array(
 				'id' => array('pk' => true),
-				'hash' => array('unique' => true),
+				'hash' => array('null' => true),
 				'batch' => array('unsigned' => true, 'null' => true, 'default' => null),
 				'date' => array('null' => false, 'default' => ''),
 				'summary' => array('null' => false, 'default' => ''),

@@ -21,28 +21,50 @@ if ( isset($_POST['importer']) && (isset($_FILES['file']) || isset($_POST['filep
 
 	$transactions = $importer->extractTransactions($_POST['filepath'] ?? $_FILES['file']['tmp_name']);
 
+	usort($transactions, function($a, $b) {
+		$d1 = strcmp($b['date'], $a['date']);
+		if ( $d1 != 0 ) return $d1;
+
+		$d2 = abs($b['amount']) <=> abs($a['amount']);
+		if ( $d2 != 0 ) return $d2;
+
+		return 0;
+	});
+
 	$transactions = array_map(function($tr) use ($batch, $account) {
-		return $tr + [
+		$orig = $tr + [
 			'account_id' => $account ? $account->id : null,
 			'batch' => $batch,
-			'hash' => get_transaction_hash($tr),
 		];
+		return new Transaction($orig + ['orig' => $orig]);
 	}, $transactions);
-	$hashes = array_column($transactions, 'hash');
 
-	$existingTransactions = Transaction::all(['hash' => $hashes]);
-	$existingTransactions = array_reduce($existingTransactions, function(array $list, Transaction $tr) {
-		return $list + [$tr->hash => $tr];
-	}, []);
+	$dates = array_unique(array_column($transactions, 'date'));
+	$potentialDoubleTransactions = Transaction::all(['date' => $dates]);
+
+	foreach ($transactions as $trans1) {
+		$trans1->potential_doubles = array_filter($potentialDoubleTransactions, function($trans2) use ($trans1) {
+			return $trans1->similarityTo($trans2) > 80;
+		});
+	}
+
+	$withPotentialDoubles = count(array_filter($transactions, function($tr) {
+		return count($tr->potential_doubles) > 0;
+	}));
 
 	if ( !empty($_POST['confirm']) ) {
 		@unlink($_POST['filepath']);
 
 		$db->begin();
 
-		foreach ( $transactions as $tr ) {
-			if ( !isset($existingTransactions[$tr['hash']]) ) {
-				Transaction::insert($tr);
+		$selected = $_POST['selected'] ?? [];
+		if ( count($selected) == 0 ) {
+			exit('No selected..?');
+		}
+
+		foreach ( $transactions as $i => $tr ) {
+			if ( in_array($i, $selected) ) {
+				Transaction::insert($tr->orig);
 			}
 		}
 
@@ -50,10 +72,6 @@ if ( isset($_POST['importer']) && (isset($_FILES['file']) || isset($_POST['filep
 
 		return do_redirect('index');
 	}
-
-	usort($transactions, function($a, $b) {
-		return strcmp($b['date'], $a['date']);
-	});
 
 	$filepath = tempnam(sys_get_temp_dir(), 'moneys');
 	file_put_contents($filepath, file_get_contents($_FILES['file']['tmp_name']));
@@ -73,39 +91,41 @@ if ( isset($_POST['importer']) && (isset($_FILES['file']) || isset($_POST['filep
 	</style>
 
 	<p>
-		<?= count($existingTransactions) ?> / <?= count($transactions) ?> transactions exists,
-		<?= count($transactions) - count($existingTransactions) ?> to import:
+		<?= count($transactions) ?> uploaded. <?= $withPotentialDoubles ?> with potential doubles.
 	</p>
-
-	<table border="1" cellspacing="0" cellpadding="6">
-		<? foreach ($transactions as $tr):
-			$exists = $existingTransactions[$tr['hash']] ?? null;
-			?>
-			<tr>
-				<td rowspan="<?= $exists ? 2 : 1 ?>"></td>
-				<td nowrap><?= html($tr['date']) ?></td>
-				<td nowrap align="right" style="background-color: <?= $tr['amount'] < 0 ? '#fdd' : '#dfd' ?>">
-					<?= number_format($tr['amount'], 2) ?>
-				</td>
-				<td><?= html($tr['summary']) ?> <?= html($tr['description']) ?></td>
-				<td></td>
-			</tr>
-			<? if ($exists): ?>
-				<tr>
-					<td colspan="2"></td>
-					<td><?= html($exists->sumdesc) ?></td>
-					<td nowrap><a href="transaction.php?id=<?= $exists->id ?>"><?= $exists->id ?></a></td>
-				</tr>
-			<? endif ?>
-		<? endforeach ?>
-	</table>
 
 	<form action method="post">
 		<input type="hidden" name="confirm" value="1" />
 		<input type="hidden" name="importer" value="<?= html($_POST['importer']) ?>" />
 		<input type="hidden" name="filepath" value="<?= html($filepath) ?>" />
+
+		<table border="1" cellspacing="0" cellpadding="6">
+			<? foreach ($transactions as $i => $tr):
+				$exists = count($tr->potential_doubles);
+				?>
+				<tr>
+					<td rowspan="<?= ($exists + 1) ?>" valign="top">
+						<input type="checkbox" name="selected[]" value="<?= $i ?>" <?= $exists ? '' : 'checked' ?> />
+					</td>
+					<td nowrap><?= html($tr['date']) ?></td>
+					<td nowrap align="right" style="background-color: <?= $tr['amount'] < 0 ? '#fdd' : '#dfd' ?>">
+						<?= number_format($tr['amount'], 2) ?>
+					</td>
+					<td><?= html($tr['summary']) ?> <?= html($tr['description']) ?></td>
+					<td></td>
+				</tr>
+				<? foreach ($tr->potential_doubles as $tr2): ?>
+					<tr>
+						<td colspan="2"></td>
+						<td><?= html($tr2->sumdesc) ?></td>
+						<td nowrap><a href="transaction.php?id=<?= $tr2->id ?>"><?= $tr2->id ?></a></td>
+					</tr>
+				<? endforeach ?>
+			<? endforeach ?>
+		</table>
+
 		<p><button style="font-weight: bold; padding: 9px 14px">
-			IMPORT <?= count($transactions) - count($existingTransactions) ?> TRANSACTIONS
+			IMPORT SELECTED
 		</button></p>
 	</form>
 	<?php

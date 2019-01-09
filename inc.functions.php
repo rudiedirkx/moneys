@@ -125,20 +125,6 @@ function get_amount_from_eu( $amount ) {
 	return (float) strtr($amount, array('.' => '', ',' => '.'));
 }
 
-function get_transaction_hash( $transaction ) {
-	$transaction = (array) $transaction;
-
-	$hashable = array_intersect_key($transaction, array_flip(array('date', 'type', 'account', 'amount')));
-
-	$hashable['amount'] = number_format($hashable['amount'], 2, '.', '');
-	$hashable['account'] = get_safe_accountno($hashable['account']);
-	$hashable['sumdesc'] = strtolower(preg_replace('#[^a-z0-9]#i', '', $transaction['summary'] . ' ' . $transaction['description']));
-
-	ksort($hashable);
-
-	return $transaction['date'] . ' ' . sha1(serialize($hashable));
-}
-
 function get_safe_accountno($account) {
 	$account = trim($account);
 	if ( !$account ) {

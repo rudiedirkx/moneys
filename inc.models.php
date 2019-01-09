@@ -144,6 +144,8 @@ class Transaction extends Model {
 		isset($data['category_id']) and empty($data['category_id']) and $data['category_id'] = null;
 
 		isset($data['account_id']) and empty($data['account_id']) and $data['account_id'] = null;
+
+		$data['hash'] = microtime() . ' ' . rand();
 	}
 
 	static function insert( array $data ) {
@@ -160,6 +162,19 @@ class Transaction extends Model {
 		}
 
 		return $id;
+	}
+
+	function similarityTo(self $other) {
+		if ($other->date != $this->date) {
+			return false;
+		}
+
+		if ((float) $other->amount != (float) $this->amount) {
+			return false;
+		}
+
+		similar_text($this->safe_sumdesc, $other->safe_sumdesc, $similarity);
+		return $similarity;
 	}
 
 	function saveTags( $tags, $dbTransaction = true ) {
@@ -229,6 +244,10 @@ class Transaction extends Model {
 
 	function get_sumdesc() {
 		return preg_replace('/ {2,}/', '   ', $this->summary . ' ' . $this->description);
+	}
+
+	function get_safe_sumdesc() {
+		return str_replace(' ', '', mb_strtolower($this->sumdesc));
 	}
 
 	function get_simple_uniq() {

@@ -39,11 +39,7 @@ class IngMainAccountImporter extends CsvImporter {
 				'type' => @$this->types[$type] ?: $type,
 				'account' => preg_replace('#\s+#', '', trim(@$tr['Tegenrekening'])) ?: null,
 				'amount' => $dir * get_amount_from_eu($tr['Bedrag (EUR)']),
-				// 'account_id' => $account ? $account->id : null,
-				// 'batch' => $batch,
 			);
-
-			// $record['hash'] = get_transaction_hash($record);
 
 			return $record;
 		}, $data);

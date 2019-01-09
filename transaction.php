@@ -11,7 +11,6 @@ if ( !$transaction ) {
 }
 
 $subTransactions = $transaction->child_transactions;
-$hashClashes = array();
 
 // DELETE
 if ( @$_POST['_action'] == 'delete' ) {
@@ -34,17 +33,14 @@ if ( @$_POST['_action'] == 'unsplit' ) {
 // SAVE
 if ( isset($_POST['category_id'], $_POST['notes'], $_POST['summary'], $_POST['description'], $_POST['tags'], $_POST['account_id'], $_POST['ignore']) ) {
 	// Properties
-	$update = array(
+	$transaction->update([
 		'category_id' => $_POST['category_id'],
 		'notes' => trim($_POST['notes']),
 		'summary' => trim($_POST['summary']),
 		'description' => trim($_POST['description']),
 		'account_id' => $_POST['account_id'],
 		'ignore' => (int) $_POST['ignore'],
-	);
-	$all = $update + get_object_vars($transaction);
-	$update['hash'] = get_transaction_hash($all);
-	$transaction->update($update);
+	]);
 
 	// Tags
 	$transaction->saveTags($_POST['tags']);
@@ -77,9 +73,7 @@ if ( isset($_FILES['csv']) ) {
 
 // SPLIT
 if ( isset($_POST['amount'], $_POST['description'], $_POST['date'], $_POST['category'], $_POST['tags']) ) {
-	$existingHashes = $db->select_fields('transactions', 'hash, hash', 'parent_transaction_id <> ?', array($transaction->id));
-
-	$subTransactions = $hashClashes = array();
+	$subTransactions = array();
 
 	$totalAmount = 0;
 	foreach ($_POST['amount'] as $i => $amount) {
@@ -100,12 +94,6 @@ if ( isset($_POST['amount'], $_POST['description'], $_POST['date'], $_POST['cate
 				'category_id' => $category,
 				'tags' => trim(implode(' ', $transaction->tags) . ' ' . $tags),
 			);
-			$subTransaction['hash'] = get_transaction_hash($subTransaction);
-
-			if ( isset($existingHashes[ $subTransaction['hash'] ]) ) {
-				$hashClashes[$i] = $i;
-			}
-			$existingHashes[ $subTransaction['hash'] ] = $subTransaction['hash'];
 
 			$subTransactions[] = $subTransaction;
 		}
@@ -129,12 +117,6 @@ if ( isset($_POST['amount'], $_POST['description'], $_POST['date'], $_POST['cate
 			echo "<p class='error'>Totals don't match. Transaction says `" . number_format($transaction->amount, 2) . "`, your sub transactions say `" . number_format($totalAmount, 2) . "`.</p>";
 			echo "\n\n";
 		}
-	}
-
-	if ( $hashClashes ) {
-		$error = true;
-		echo "<p class='error'>All transactions must be unique. Manually add serial numbers to descriptions to make them unique.</p>";
-		echo "\n\n";
 	}
 
 	if ( !$error ) {
@@ -203,6 +185,7 @@ ul.compact {
 </style>
 
 <form id="edit" method="post" action>
+	<!-- hash: '<?= $transaction->hash ?>' -->
 	<table border="1">
 		<tr>
 			<th>Date</th>
@@ -351,7 +334,7 @@ ul.compact {
 			<tbody>
 				<? $subTransactions[] = array('date' => $transaction->date) ?>
 				<? foreach ( $subTransactions as $i => $subTransaction ): ?>
-					<tr class="subTransaction <?= isset($hashClashes[$i]) ? 'error' : '' ?>">
+					<tr class="subTransaction">
 						<td><input name="amount[]" class="amount" type="number" step="any" value="<?= number_format(@$subTransaction['amount'] ?: 0, 2, '.', '') ?>" /></td>
 						<td><input name="description[]" class="description" value="<?= html(@$subTransaction['description']) ?>" /></td>
 						<td><input name="date[]" class="date" type="date" value="<?= html(@$subTransaction['date']) ?>" /></td>

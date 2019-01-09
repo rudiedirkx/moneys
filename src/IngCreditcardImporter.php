@@ -23,11 +23,7 @@ class IngCreditcardImporter extends CsvImporter {
 				'type' => 'cc',
 				'account' => null,
 				'amount' => $tr['Amount'],
-				// 'account_id' => $account ? $account->id : null,
-				// 'batch' => $batch,
 			);
-
-			// $record['hash'] = get_transaction_hash($record);
 
 			return $record;
 		}, $data);
