@@ -140,8 +140,10 @@ body:not(.hide-sumdesc) .show-sumdesc {
 				<?= $pager_html ?>
 			<? endif ?>
 			<tr>
-				<td class="col-id"></td>
-				<td class="col-cb"><?= count($transactions) ?></td>
+				<td class="col-id"><?= count($transactions) ?></td>
+				<td class="col-cb">
+					<input type="checkbox" onclick="$$('tbody .cb').prop('checked', this.checked); onCheck()" />
+				</td>
 				<td class="col-date"></td>
 				<td class="amount"><?= html_money($totalMoney, true) ?></td>
 				<td class="col-type"></td>

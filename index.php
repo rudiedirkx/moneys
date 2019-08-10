@@ -10,10 +10,11 @@ if ( isset($_POST['check']) ) {
 	if ( $tags = trim($_POST['add_tag']) ) {
 		$db->begin();
 		foreach ( Tag::split($tags) as $tag ) {
+			$delete = $tag[0] == '-';
 			$tagId = Tag::ensure($tag);
 
 			foreach ( $_POST['check'] as $trId ) {
-				Transaction::tag($trId, $tagId);
+				call_user_func([Transaction::class, $delete ? 'untag' : 'tag'], $trId, $tagId);
 			}
 		}
 		$db->commit();

@@ -26,6 +26,7 @@ class Tag extends Model {
 	}
 
 	static function ensure( $tag ) {
+		$tag = trim($tag, '- ');
 		if ( $object = self::get($tag) ) {
 			return $object->id;
 		}
@@ -126,9 +127,14 @@ class Transaction extends Model {
 		return $options;
 	}
 
-	static function tag( $transactionId, $tagId ) {
+	static function untag( $transactionId, $tagId ) {
+		return static::tag($transactionId, $tagId, true);
+	}
+
+	static function tag( $transactionId, $tagId, $delete = false ) {
 		try {
-			self::$_db->insert('tagged', array(
+			$method = $delete ? 'delete' : 'insert';
+			call_user_func([self::$_db, $method], 'tagged', array(
 				'tag_id' => $tagId,
 				'transaction_id' => $transactionId,
 			));
@@ -280,7 +286,7 @@ class Transaction extends Model {
 
 	function get_category_suggestions() {
 		if ( $this->category_id_suggestions ) {
-			$categories = self::$_db->select('categories', 'id in (?)', array($this->category_id_suggestions));
+			$categories = self::$_db->select('categories', 'id in (?)', array($this->category_id_suggestions))->all();
 			return $categories;
 		}
 

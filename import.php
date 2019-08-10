@@ -82,11 +82,18 @@ if ( isset($_POST['importer']) && (isset($_FILES['file']) || isset($_POST['filep
 		width: 1px;
 		padding: 3px;
 	}
-	td[rowspan="1"] {
+	td[rowspan="1"]:first-child {
 		background-color: green;
 	}
-	td[rowspan="2"] {
+	td[rowspan="2"]:first-child {
 		background-color: red;
+	}
+	td[rowspan="3"]:first-child,
+	td[rowspan="4"]:first-child {
+		background-color: blue;
+	}
+	.nowrap {
+		white-space: nowrap;
 	}
 	</style>
 
@@ -104,11 +111,11 @@ if ( isset($_POST['importer']) && (isset($_FILES['file']) || isset($_POST['filep
 				$exists = count($tr->potential_doubles);
 				?>
 				<tr>
-					<td rowspan="<?= ($exists + 1) ?>" valign="top">
+					<td rowspan="<?= ($exists + 1) ?>">
 						<input type="checkbox" name="selected[]" value="<?= $i ?>" <?= $exists ? '' : 'checked' ?> />
 					</td>
-					<td nowrap><?= html($tr['date']) ?></td>
-					<td nowrap align="right" style="background-color: <?= $tr['amount'] < 0 ? '#fdd' : '#dfd' ?>">
+					<td rowspan="<?= ($exists + 1) ?>" class="nowrap"><?= html($tr['date']) ?></td>
+					<td rowspan="<?= ($exists + 1) ?>" class="nowrap" align="right" style="background-color: <?= $tr['amount'] < 0 ? '#fdd' : '#dfd' ?>">
 						<?= number_format($tr['amount'], 2) ?>
 					</td>
 					<td><?= html($tr['summary']) ?> <?= html($tr['description']) ?></td>
@@ -116,7 +123,6 @@ if ( isset($_POST['importer']) && (isset($_FILES['file']) || isset($_POST['filep
 				</tr>
 				<? foreach ($tr->potential_doubles as $tr2): ?>
 					<tr>
-						<td colspan="2"></td>
 						<td><?= html($tr2->sumdesc) ?></td>
 						<td nowrap><a href="transaction.php?id=<?= $tr2->id ?>"><?= $tr2->id ?></a></td>
 					</tr>
