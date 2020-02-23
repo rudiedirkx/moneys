@@ -294,11 +294,9 @@ class Transaction extends Model {
 	}
 
 	function get_category_id_suggestion() {
-		if ( $this->category_id_suggestions ) {
+		if ( count($this->category_id_suggestions) == 1 ) {
 			return reset($this->category_id_suggestions);
 		}
-
-		return array();
 	}
 
 	function get_category_id_suggestions() {
@@ -312,6 +310,15 @@ class Transaction extends Model {
 		}
 
 		return array();
+	}
+
+	function get_party_category_once() {
+		if ( count($this->party_suggestions) == 1 ) {
+			$party = reset($this->party_suggestions);
+			return (bool) $party->once;
+		}
+
+		return false;
 	}
 
 	function get_tag_suggestions() {

@@ -1,7 +1,7 @@
 <?php
 
 return array(
-	'version' => 6,
+	'version' => 7,
 	'tables' => array(
 		'categories' => array(
 			'columns' => array(
@@ -61,6 +61,7 @@ return array(
 				'auto_account' => array('null' => false, 'default' => ''),
 				'category_id' => array('unsigned' => true, 'null' => true, 'references' => array('categories', 'id')),
 				'tags' => array('null' => false, 'default' => ''),
+				'once' => array('unsigned' => true, 'default' => 0),
 			),
 		),
 		'tagged' => array(

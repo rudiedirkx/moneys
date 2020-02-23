@@ -115,7 +115,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 							<?= html($tr->description) ?>
 						</div>
 					</td>
-					<td class="category <? if (!$tr->category_id): ?>empty<? endif ?>">
+					<td class="category <? if (!$tr->category_id): ?>empty <? if ($tr->party_category_once): ?>party-once<? endif ?><? endif ?>">
 						<?if (!$tr->hide_category_dropdown): ?>
 							<select name="category[<?= $tr->id ?>]"><?= html_options($categories, $tr->selected_category_id, '--') ?></select>
 						<? endif ?>

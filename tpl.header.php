@@ -91,6 +91,10 @@ tr.dir-out td.category.empty {
 tr.dir-in td.category.empty {
 	background: #afa;
 }
+tr.dir-out td.category.party-once,
+tr.dir-in td.category.party-once {
+	background-color: gold;
+}
 
 .per-year td,
 .per-year th {

@@ -2,12 +2,14 @@
 
 require 'inc.bootstrap.php';
 
-$parties = Party::all('1 ORDER BY name ASC');
+$parties = Party::all('1 ORDER BY once DESC, name ASC');
 
 if ( isset($_POST['parties']) ) {
 	foreach ( $_POST['parties'] as $id => $data ) {
 		$name = trim($data['name']);
 		$party = Party::find($id);
+
+		$data['once'] = !empty($data['once']);
 
 		// Existing
 		if ( $party ) {
@@ -39,6 +41,10 @@ $tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 
 ?>
 <style>
+tr.hr td {
+	padding: 4px;
+	background-color: #000;
+}
 .auto {
 	white-space: nowrap;
 }
@@ -60,10 +66,17 @@ $tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 				<th class="c">Match (summary &amp; description)</th>
 				<th>Category</th>
 				<th>Tags</th>
+				<th align="center">Once</th>
 			</tr>
 		</thead>
 		<tbody>
-			<? foreach ($parties as $party): ?>
+			<? $prev = null ?>
+			<? foreach ($parties as $i => $party): ?>
+				<? if ($prev && $prev->once && !$party->once): ?>
+					<tr class="hr">
+						<td colspan="5"></td>
+					</tr>
+				<? endif ?>
 				<tr>
 					<td>
 						<input name="parties[<?= $party->id ?>][name]" value="<?= html($party->name) ?>" placeholder="<?= $party->id ? 'Delete this party' : 'New party name' ?>" />
@@ -77,7 +90,11 @@ $tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 					<td>
 						<input name="parties[<?= $party->id ?>][tags]" value="<?= html(@$party->tags) ?>" list="data-tags" autocomplete="off" />
 					</td>
+					<td align="center">
+						<input name="parties[<?= $party->id ?>][once]" type="checkbox" <?= $party->once ? 'checked' : '' ?> />
+					</td>
 				</tr>
+				<? $prev = $party ?>
 			<? endforeach ?>
 		<tbody>
 	</table>
