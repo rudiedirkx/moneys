@@ -41,6 +41,9 @@ $tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 
 ?>
 <style>
+tr[id]:target {
+	background: lightblue;
+}
 tr.hr td {
 	padding: 4px;
 	background-color: #000;
@@ -77,7 +80,7 @@ tr.hr td {
 						<td colspan="5"></td>
 					</tr>
 				<? endif ?>
-				<tr>
+				<tr id="p-<?= $party->id ?>">
 					<td>
 						<input name="parties[<?= $party->id ?>][name]" value="<?= html($party->name) ?>" placeholder="<?= $party->id ? 'Delete this party' : 'New party name' ?>" />
 					</td>

@@ -248,7 +248,7 @@ ul.compact {
 			<td>
 				<ul class="compact">
 					<? foreach ($transaction->party_suggestions as $party): ?>
-						<li><?= $party->name ?></li>
+						<li><a href="parties.php#p-<?= $party->id ?>"><?= $party->name ?></a></li>
 					<? endforeach ?>
 				</ul>
 			</td>
