@@ -226,8 +226,14 @@ function csv_read_doc( $data, $withHeader = true, $keepCols = array() ) {
 	}
 
 	$header = array();
-	$csv = array_map(function($line) use (&$header, $withHeader, $keepCols) {
-		$data = str_getcsv(trim($line), ',', '"', '"');
+	$delim = ',';
+	$csv = array_map(function($line) use (&$delim, &$header, $withHeader, $keepCols) {
+		$data = str_getcsv(trim($line), $delim, '"', '"');
+		if (count($data) == 1 && strpos($data[0], ';') !== false) {
+			$delim = ';';
+			$data = str_getcsv(trim($line), $delim, '"', '"');
+		}
+
 		if ( $withHeader ) {
 			if ( $header ) {
 				$data = array_combine($header, $data);
