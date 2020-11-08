@@ -12,6 +12,10 @@ class IngCreditcardImporter extends CsvImporter {
 		return 'ING custom creditcard export';
 	}
 
+	public function getTypes() : array {
+		return [];
+	}
+
 	public function extractTransactions( $filepath ) {
 		$data = $this->readCsv($filepath);
 

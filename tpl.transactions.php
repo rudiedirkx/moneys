@@ -104,7 +104,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 					<td class="amount" nowrap>
 						<label for="tr-<?= $tr->id ?>"><?= $tr->formatted_amount ?></label>
 					</td>
-					<td class="col-type" nowrap><?= $tr->type ?: '?' ?></td>
+					<td class="col-type" nowrap><?= $types[$tr->type] ?? $tr->type ?: '?' ?></td>
 					<td class="col-sumdesc">
 						<div class="summary"><?= html($tr->summary) ?> <? if ($tr->account): ?>(<?= html($tr->account) ?>)<? endif ?></div>
 						<div class="notes"><?= html($tr->notes_summary) ?></div>

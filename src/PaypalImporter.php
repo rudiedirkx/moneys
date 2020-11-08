@@ -21,6 +21,10 @@ class PaypalImporter extends CsvImporter {
 		return "Paypal 'Completed payments' export";
 	}
 
+	public function getTypes() : array {
+		return [];
+	}
+
 	public function extractTransactions( $filepath ) {
 		$data = $this->readCsv($filepath);
 

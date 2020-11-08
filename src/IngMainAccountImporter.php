@@ -8,14 +8,6 @@ class IngMainAccountImporter extends CsvImporter {
 		'Af' => -1,
 		'Bij' => 1,
 	);
-	protected $types = array(
-		'BA' => 'manual',
-		'GM' => 'atm',
-		'IC' => 'auto',
-		'VZ' => 'auto',
-		'GT' => 'manual',
-		'OV' => 'manual',
-	);
 
 	public function getMandatoryColumns() {
 		return ['Af Bij', 'Naam / Omschrijving', 'Tegenrekening', 'Bedrag (EUR)'];
@@ -23,6 +15,17 @@ class IngMainAccountImporter extends CsvImporter {
 
 	public function getTitle() {
 		return 'ING main account offical export';
+	}
+
+	public function getTypes() : array {
+		return array(
+			'BA' => 'manual',
+			'GM' => 'atm',
+			'IC' => 'auto',
+			'VZ' => 'auto',
+			'GT' => 'manual',
+			'OV' => 'manual',
+		);
 	}
 
 	public function extractTransactions( $filepath ) {
@@ -36,7 +39,7 @@ class IngMainAccountImporter extends CsvImporter {
 				'date' => get_date_from_ymd($tr['Datum']),
 				'summary' => trim($tr['Naam / Omschrijving']),
 				'description' => trim(@$tr['Mededelingen']),
-				'type' => @$this->types[$type] ?: $type,
+				'type' => $type,
 				'account' => preg_replace('#\s+#', '', trim(@$tr['Tegenrekening'])) ?: null,
 				'amount' => $dir * get_amount_from_eu($tr['Bedrag (EUR)']),
 			);

@@ -197,7 +197,7 @@ ul.compact {
 		</tr>
 		<tr>
 			<th>Type</th>
-			<td><?= $transaction->type ?></td>
+			<td><?= $transaction->type_label_full ?></td>
 		</tr>
 		<tr>
 			<th>Account no</th>

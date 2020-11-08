@@ -102,6 +102,16 @@ class Transaction extends Model {
 
 	// public $tags = array();
 
+	static function getTypes() {
+		$importers = array_map('make_importer', MONEYS_IMPORTERS);
+
+		$types = [];
+		foreach ($importers as $importer) {
+			$types = array_merge($types, $importer->getTypes());
+		}
+		return $types;
+	}
+
 	static function allMonths() {
 		$months = self::$_db->select_fields(self::$_table, "strftime('%Y-%m-01', date) d", '1 group by d order by d desc');
 		$options = [];
@@ -203,6 +213,19 @@ class Transaction extends Model {
 		if ( $dbTransaction ) {
 			self::$_db->commit();
 		}
+	}
+
+	function get_type_label() {
+		$types = self::getTypes();
+		return $types[$this->type] ?? null;
+	}
+
+	function get_type_label_full() {
+		$label = $this->type_label;
+		if ($this->type && $this->type != $label) {
+			$label = "$label ($this->type)";
+		}
+		return $label;
 	}
 
 	function get_hide_category_dropdown() {

@@ -119,6 +119,8 @@ $years = Transaction::allMonths();
 $tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 Tag::decorateTransactions($transactions, $tags);
 
+$types = Transaction::getTypes();
+
 // Export as CSV
 if ( $export ) {
 	csv_file(

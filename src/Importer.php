@@ -7,4 +7,6 @@ interface Importer {
 	public function getDescription();
 
 	public function extractTransactions( $filepath );
+
+	public function getTypes() : array;
 }
