@@ -76,6 +76,10 @@ if ( @$_GET['min'] != '' && @$_GET['max'] != '' ) {
 	$max < $min and list($min, $max) = array($max, $min);
 	$conditions[] = $db->replaceholders('amount BETWEEN ? AND ?', array($min, $max));
 }
+elseif ( @$_GET['min'] != '' ) {
+	$min = (float) $_GET['min'];
+	$conditions[] = $db->replaceholders('(amount = ? OR amount = ?)', array($min, -$min));
+}
 if ( !empty($_GET['year']) ) {
 	if ( preg_match('#^(\d{4})-q(\d)$#', $_GET['year'], $match) ) {
 		$qend = $match[1] . '-' . str_pad($match[2] * 3, 2, '0', STR_PAD_LEFT) . '-31';
