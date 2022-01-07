@@ -4,9 +4,9 @@ namespace rdx\moneys;
 
 abstract class CsvImporter implements Importer {
 
-	abstract public function getMandatoryColumns();
+	abstract public function getMandatoryColumns() : array;
 
-	public function getDescription() {
+	public function getDescription() : string {
 		return "CSV file with mandatory columns '" . implode("', '", $this->getMandatoryColumns()) . "'.";
 	}
 

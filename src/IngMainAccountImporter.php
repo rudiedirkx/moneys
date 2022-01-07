@@ -9,11 +9,11 @@ class IngMainAccountImporter extends CsvImporter {
 		'Bij' => 1,
 	);
 
-	public function getMandatoryColumns() {
+	public function getMandatoryColumns() : array {
 		return ['Af Bij', 'Naam / Omschrijving', 'Tegenrekening', 'Bedrag (EUR)'];
 	}
 
-	public function getTitle() {
+	public function getTitle() : string {
 		return 'ING main account offical export';
 	}
 
@@ -28,7 +28,7 @@ class IngMainAccountImporter extends CsvImporter {
 		);
 	}
 
-	public function extractTransactions( $filepath ) {
+	public function extractTransactions( string $filepath ) : array {
 		$data = $this->readCsv($filepath);
 
 		$records = array_map(function($tr) {

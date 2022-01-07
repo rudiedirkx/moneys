@@ -3,7 +3,8 @@
     "description": "Very simple money management.",
     "type": "project",
     "require": {
-        "rdx/db": "^1.4"
+        "rdx/db": "dev-master",
+        "symfony/var-dumper": "^5.4"
     },
     "autoload": {
         "psr-4": {

@@ -13,11 +13,11 @@ class PaypalImporter extends CsvImporter {
 		$this->currency = $targetCurrency;
 	}
 
-	public function getMandatoryColumns() {
+	public function getMandatoryColumns() : array {
 		return ["Date", "Time", "TimeZone", "Name", "Type", "Currency", "Gross", "From Email Address", "To Email Address", "Item Title", "Subject"];
 	}
 
-	public function getTitle() {
+	public function getTitle() : string {
 		return "Paypal 'Completed payments' export";
 	}
 
@@ -25,7 +25,7 @@ class PaypalImporter extends CsvImporter {
 		return [];
 	}
 
-	public function extractTransactions( $filepath ) {
+	public function extractTransactions( string $filepath ) : array {
 		$data = $this->readCsv($filepath);
 
 		$data = $this->appendUtc($data);

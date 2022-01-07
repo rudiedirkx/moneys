@@ -4,11 +4,11 @@ namespace rdx\moneys;
 
 class IngCreditcardImporter extends CsvImporter {
 
-	public function getMandatoryColumns() {
+	public function getMandatoryColumns() : array {
 		return ["Date", "Description", "Amount"];
 	}
 
-	public function getTitle() {
+	public function getTitle() : string {
 		return 'ING custom creditcard export';
 	}
 
@@ -16,7 +16,7 @@ class IngCreditcardImporter extends CsvImporter {
 		return [];
 	}
 
-	public function extractTransactions( $filepath ) {
+	public function extractTransactions( string $filepath ) : array {
 		$data = $this->readCsv($filepath);
 
 		$records = array_map(function($tr) {
