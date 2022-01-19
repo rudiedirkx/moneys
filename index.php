@@ -46,7 +46,7 @@ elseif ( isset($_POST['category']) ) {
 	return do_redirect();
 }
 
-$conditions = array(
+$conditions = $emptyConditions = array(
 	'ignore' => 0,
 );
 if ( !empty($_GET['ignore']) ) {
@@ -97,8 +97,8 @@ if ( !empty($_GET['search']) ) {
 	$q = '%' . $_GET['search'] . '%';
 	$conditions[] = $db->replaceholders('(description LIKE ? OR summary LIKE ? OR notes LIKE ? OR account LIKE ?)', array($q, $q, $q, $q));
 }
-if ( $conditions ) {
-	$perPage = 500;
+if ( count($conditions) && $conditions != $emptyConditions ) {
+	$perPage = 250;
 }
 
 $offset = $page * $perPage;
