@@ -23,6 +23,8 @@ $spendingsPerYear = array_reduce($db->fetch('
 }, array());
 // print_r($spendingsPerYear);
 
+$labels = Transaction::getTypes();
+
 require 'tpl.header.php';
 
 ?>
@@ -40,7 +42,7 @@ require 'tpl.header.php';
 	<tbody>
 		<? foreach ($types as $type): ?>
 			<tr>
-				<td><?= html($type->type ?: '?') ?></td>
+				<td nowrap><?= html($type->type ?: '?') ?> <?= html($labels[$type->type] ?? '') ?></td>
 				<td class="amount"><?= html_money($type->amount, false) ?></td>
 				<td>
 					<a href="index.php?type=<?= $type->type ?: -1 ?>"><?= $type->num_transactions ?></a>

@@ -35,9 +35,9 @@ class AsnCsvImporter implements Importer {
 
 	public function getTypes() : array {
 		return [
-			'asn:OVB' => 'OVB',
-			'asn:DIV' => 'DIV',
-			'asn:IOB' => 'IOB',
+			'asn:DIV' => '?asn', // Diversen
+			'asn:IOB' => 'manual', // Interne Overboeking
+			'asn:OVB' => 'manual', // Overboeking
 		];
 	}
 

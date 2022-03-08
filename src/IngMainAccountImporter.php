@@ -19,12 +19,16 @@ class IngMainAccountImporter extends CsvImporter {
 
 	public function getTypes() : array {
 		return array(
-			'BA' => 'manual',
-			'GM' => 'atm',
-			'IC' => 'auto',
-			'VZ' => 'auto',
-			'GT' => 'manual',
-			'OV' => 'manual',
+			'BA' => 'manual', // Betaalautomaat
+			'DV' => '?ing', // Diversen
+			'GM' => 'atm', // Geldautomaat
+			'GT' => 'manual', // Internetbankieren
+			'IC' => 'auto', // Incasso
+			'ID' => 'manual', // IDEAL?
+			'OV' => 'manual', // Overschrijving
+			'PK' => 'manual', // Opname kantoor
+			'ST' => 'manual', // Storting
+			'VZ' => 'auto', // Verzamelbetaling
 		);
 	}
 
