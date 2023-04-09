@@ -215,7 +215,7 @@ function html_options( $options, $selected = null, $empty = '', $datalist = fals
 }
 
 function html($str) {
-	return htmlspecialchars($str, ENT_COMPAT, 'UTF-8');
+	return htmlspecialchars($str ?? '', ENT_COMPAT, 'UTF-8');
 }
 
 function csv_read_doc( $data, $withHeader = true, $keepCols = array() ) {
