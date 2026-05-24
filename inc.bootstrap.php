@@ -6,7 +6,7 @@ require __DIR__ . '/vendor/autoload.php';
 // do_auth();
 
 // Connect to db
-$db = db_sqlite::open(array('database' => __DIR__ . '/db/moneys.sqlite3'));
+$db = db_sqlite::open(array('database' => DB_FILE));
 if ( !$db ) {
 	exit("<p>No db...</p>");
 }

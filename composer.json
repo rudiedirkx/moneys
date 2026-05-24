@@ -3,7 +3,7 @@
     "description": "Very simple money management.",
     "type": "project",
     "require": {
-        "rdx/db": "dev-master",
+        "rdx/db": "^1.28",
         "symfony/var-dumper": "^5.4"
     },
     "autoload": {
@@ -13,12 +13,6 @@
         "files": [
             "inc.models.php",
             "inc.functions.php"
-        ]
-    },
-    "scripts": {
-        "pre-install-cmd": [
-            "php -r \"is_dir('db') or mkdir('db') and chmod('db', 0777);\"",
-            "php -r \"file_exists('env.php') or copy('env.php.orig', 'env.php');\""
         ]
     },
     "license": "MIT",
