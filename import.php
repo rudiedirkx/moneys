@@ -1,15 +1,17 @@
 <?php
 
+use rdx\moneys\Account;
 use rdx\moneys\Importer;
+use rdx\moneys\Transaction;
 
 require 'inc.bootstrap.php';
 
-$account = Account::find(@$_GET['account']);
+$account = Account::find($_GET['account'] ?? null);
 
 $importers = array_map('make_importer', MONEYS_IMPORTERS);
 
 if ( isset($_POST['importer']) && (isset($_FILES['file']) || isset($_POST['filepath'])) ) {
-	$importer = array_reduce($importers, function($match, Importer $importer) {
+	$importer = array_reduce($importers, function(?Importer $match, Importer $importer) {
 		return $importer->getTitle() === $_POST['importer'] ? $importer : $match;
 	}, null);
 	if ( !$importer ) {
@@ -21,7 +23,7 @@ if ( isset($_POST['importer']) && (isset($_FILES['file']) || isset($_POST['filep
 
 	$transactions = $importer->extractTransactions($_POST['filepath'] ?? $_FILES['file']['tmp_name']);
 
-	usort($transactions, function($a, $b) {
+	usort($transactions, function(array $a, array $b) {
 		$d1 = strcmp($b['date'], $a['date']);
 		if ( $d1 != 0 ) return $d1;
 
@@ -31,44 +33,46 @@ if ( isset($_POST['importer']) && (isset($_FILES['file']) || isset($_POST['filep
 		return 0;
 	});
 
-	$transactions = array_map(function($tr) use ($batch, $account) {
-		$orig = $tr + [
+	$records = array_map(function(array $tr) use ($batch, $account) {
+		return $tr + [
 			'account_id' => $account ? $account->id : null,
 			'batch' => $batch,
 		];
-		return new Transaction($orig + ['orig' => $orig]);
 	}, $transactions);
+
+	$transactions = array_map(function(array $record) {
+		return new Transaction($record);
+	}, $records);
 
 	$dates = array_unique(array_column($transactions, 'date'));
 	$potentialDoubleTransactions = Transaction::all(['date' => $dates]);
 
-	foreach ($transactions as $trans1) {
-		$trans1->potential_doubles = array_filter($potentialDoubleTransactions, function($trans2) use ($trans1) {
+	$potentialDoubles = [];
+	foreach ($transactions as $i => $trans1) {
+		$potentialDoubles[$i] = array_filter($potentialDoubleTransactions, function(Transaction $trans2) use ($trans1) {
 			return $trans1->similarityTo($trans2) > 80;
 		});
 	}
 
-	$withPotentialDoubles = count(array_filter($transactions, function($tr) {
-		return count($tr->potential_doubles) > 0;
-	}));
+	$withPotentialDoubles = count(array_filter($potentialDoubles));
 
 	if ( !empty($_POST['confirm']) ) {
 		@unlink($_POST['filepath']);
 
-		$db->begin();
+		db()->begin();
 
 		$selected = $_POST['selected'] ?? [];
 		if ( count($selected) == 0 ) {
 			exit('No selected..?');
 		}
 
-		foreach ( $transactions as $i => $tr ) {
+		foreach ( $records as $i => $record ) {
 			if ( in_array($i, $selected) ) {
-				Transaction::insert($tr->orig);
+				Transaction::insert($record);
 			}
 		}
 
-		$db->commit();
+		db()->commit();
 
 		return do_redirect('index');
 	}
@@ -108,20 +112,20 @@ if ( isset($_POST['importer']) && (isset($_FILES['file']) || isset($_POST['filep
 
 		<table border="1" cellspacing="0" cellpadding="6">
 			<? foreach ($transactions as $i => $tr):
-				$exists = count($tr->potential_doubles);
+				$exists = count($potentialDoubles[$i]);
 				?>
 				<tr>
 					<td rowspan="<?= ($exists + 1) ?>">
 						<input type="checkbox" name="selected[]" value="<?= $i ?>" <?= $exists ? '' : 'checked' ?> />
 					</td>
-					<td rowspan="<?= ($exists + 1) ?>" class="nowrap"><?= html($tr['date']) ?></td>
-					<td rowspan="<?= ($exists + 1) ?>" class="nowrap" align="right" style="background-color: <?= $tr['amount'] < 0 ? '#fdd' : '#dfd' ?>">
-						<?= number_format($tr['amount'], 2) ?>
+					<td rowspan="<?= ($exists + 1) ?>" class="nowrap"><?= html($tr->date) ?></td>
+					<td rowspan="<?= ($exists + 1) ?>" class="nowrap" align="right" style="background-color: <?= $tr->amount < 0 ? '#fdd' : '#dfd' ?>">
+						<?= number_format($tr->amount, 2) ?>
 					</td>
-					<td><?= html($tr['summary']) ?> <?= html($tr['description']) ?></td>
+					<td><?= html($tr->summary) ?> <?= html($tr->description) ?></td>
 					<td></td>
 				</tr>
-				<? foreach ($tr->potential_doubles as $tr2): ?>
+				<? foreach ($potentialDoubles[$i] as $tr2): ?>
 					<tr>
 						<td><?= html($tr2->sumdesc) ?></td>
 						<td nowrap><a href="transaction.php?id=<?= $tr2->id ?>"><?= $tr2->id ?></a></td>

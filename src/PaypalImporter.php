@@ -7,9 +7,9 @@ use RuntimeException;
 
 class PaypalImporter extends CsvImporter {
 
-	protected $currency;
+	protected string $currency;
 
-	public function __construct( $targetCurrency ) {
+	public function __construct( string $targetCurrency ) {
 		$this->currency = $targetCurrency;
 	}
 
@@ -47,7 +47,11 @@ class PaypalImporter extends CsvImporter {
 		return $records;
 	}
 
-	protected function getAmount( array $row, array $rows ) {
+	/**
+	 * @param AssocArray $row
+	 * @param list<AssocArray> $rows
+	 */
+	protected function getAmount( array $row, array $rows ) : float {
 		if ( $row['Currency'] === $this->currency ) {
 			return (float) $row['Gross'];
 		}
@@ -67,29 +71,42 @@ class PaypalImporter extends CsvImporter {
 		throw new RuntimeException("Can't convert {$row['Currency']} to $this->currency for {$row['Name']} on {$row['Date']}");
 	}
 
-	protected function filterFromTo( array $rows ) {
+	/**
+	 * @param list<AssocArray> $rows
+	 * @return array<int, AssocArray>
+	 */
+	protected function filterFromTo( array $rows ) : array {
 		return array_filter($rows, function(array $row) {
 			return $row['From Email Address'] && $row['To Email Address'];
 		});
 	}
 
-	protected function filterHoldsAndAuths( array $rows ) {
+	/**
+	 * @param array<int, AssocArray> $rows
+	 * @return array<int, AssocArray>
+	 */
+	protected function filterHoldsAndAuths( array $rows ) : array {
 		return array_filter($rows, function(array $row) {
 			return !in_array($row['Type'], ['General Authorization', 'Account Hold for Open Authorization', 'Reversal of General Account Hold']);
 		});
 	}
 
-	protected function appendUtc( array $rows ) {
-		return array_map(function(array $row) {
+	/**
+	 * @param list<AssocArray> $rows
+	 * @return list<AssocArray>
+	 */
+	protected function appendUtc( array $rows ) : array {
+		$indexes = array_keys($rows);
+		return array_map(function(array $row, int $index) {
 			$date = $row['Date'] . ' ' . $row['Time'] . ' ' . $row['TimeZone'];
 			$dt = DateTime::createFromFormat('d/m/Y H:i:s T', $date);
 			if ( !$dt ) {
-				throw new RuntimeException("Invalid date format: '$date' on line $line");
+				throw new RuntimeException("Invalid date format: '$date' on row $index");
 			}
 			$utc = $dt->getTimestamp();
 			$row['_utc'] = $utc;
 			return $row;
-		}, $rows);
+		}, $rows, $indexes);
 	}
 
 }

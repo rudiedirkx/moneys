@@ -18,7 +18,7 @@ class AsnCsvImporter implements Importer {
 	public function extractTransactions( string $filepath ) : array {
 		$data = csv_read_doc(file_get_contents($filepath), false);
 
-		return array_map(function($tr) {
+		return array_map(function(array $tr) {
 			$description = trim($tr['17']);
 			$description = trim(preg_replace('#^' . preg_quote($tr[2], '#') . '-#', '', $description));
 			$description = trim(preg_replace('#^' . preg_quote($tr[3], '#') . '-#i', '', $description));

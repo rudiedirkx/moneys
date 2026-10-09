@@ -1,5 +1,7 @@
 <?php
 
+use rdx\moneys\Account;
+
 require 'inc.bootstrap.php';
 
 if ( isset($_POST['new_account']) ) {

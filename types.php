@@ -1,23 +1,25 @@
 <?php
 
+use rdx\moneys\Transaction;
+
 require 'inc.bootstrap.php';
 
-$types = $db->fetch('
+$types = db()->fetch('
 	SELECT type, SUM(ABS(amount)) amount, COUNT(1) num_transactions
 	FROM transactions
 	WHERE ignore = 0
 	GROUP BY type
 	ORDER BY type ASC
-')->all();
+');
 // print_r($types);
 
-$spendingsPerYear = array_reduce($db->fetch('
+$spendingsPerYear = array_reduce(db()->fetch('
 	SELECT type, SUBSTR(date, 1, 4) year, SUM(ABS(amount)) amount
 	FROM transactions
 	WHERE ignore = 0
 	GROUP BY type, year
 	ORDER BY year DESC
-')->all(), function($result, $record) {
+'), function(array $result, stdClass $record) {
 	$result[ $record->year ][ $record->type ] = $record->amount;
 	return $result;
 }, array());
@@ -49,7 +51,7 @@ require 'tpl.header.php';
 				</td>
 				<? foreach ($spendingsPerYear as $year => $data): ?>
 					<td class="amount">
-						<a href="index.php?type=<?= $type->type ?: -1 ?>&year=<?= $year ?>"><?= html_money(@$data[$type->type], false) ?></a>
+						<a href="index.php?type=<?= $type->type ?: -1 ?>&year=<?= $year ?>"><?= html_money($data[$type->type] ?? null, false) ?></a>
 					</td>
 				<? endforeach ?>
 			</tr>

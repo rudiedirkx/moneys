@@ -1,5 +1,7 @@
 <?php
 
+use rdx\moneys\Account;
+
 require 'inc.bootstrap.php';
 
 $id = (int)$_GET['id'];

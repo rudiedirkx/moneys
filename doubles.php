@@ -1,13 +1,16 @@
 <?php
 
+use rdx\moneys\Tag;
+use rdx\moneys\Transaction;
+
 require 'inc.bootstrap.php';
 
 $transactions = get_doubles();
 
-$categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
+$categories = db()->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
 Transaction::$_categories = $categories;
 
-$tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
+$tags = db()->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 Tag::decorateTransactions($transactions, $tags);
 
 require 'tpl.header.php';

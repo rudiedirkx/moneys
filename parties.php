@@ -1,5 +1,7 @@
 <?php
 
+use rdx\moneys\Party;
+
 require 'inc.bootstrap.php';
 
 $parties = Party::all('1 ORDER BY once DESC, name ASC');
@@ -35,9 +37,9 @@ require 'tpl.header.php';
 
 $parties[] = new Party(array('id' => 0, 'name' => ''));
 
-$categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
+$categories = db()->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
 
-$tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
+$tags = db()->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 
 ?>
 <style>
@@ -85,13 +87,13 @@ tr.hr td {
 						<input name="parties[<?= $party->id ?>][name]" value="<?= html($party->name) ?>" placeholder="<?= $party->id ? 'Delete this party' : 'New party name' ?>" />
 					</td>
 					<td class="auto">
-						#<input name="parties[<?= $party->id ?>][auto_sumdesc]" value="<?= @$party->auto_sumdesc ?>" />#i
+						#<input name="parties[<?= $party->id ?>][auto_sumdesc]" value="<?= html($party->auto_sumdesc) ?>" />#i
 					</td>
 					<td>
-						<select name="parties[<?= $party->id ?>][category_id]"><?= html_options($categories, @$party->category_id, '--') ?></select>
+						<select name="parties[<?= $party->id ?>][category_id]"><?= html_options($categories, $party->category_id, '--') ?></select>
 					</td>
 					<td>
-						<input name="parties[<?= $party->id ?>][tags]" value="<?= html(@$party->tags) ?>" list="data-tags" autocomplete="off" />
+						<input name="parties[<?= $party->id ?>][tags]" value="<?= html($party->tags) ?>" list="data-tags" autocomplete="off" />
 					</td>
 					<td align="center">
 						<input name="parties[<?= $party->id ?>][once]" type="checkbox" <?= $party->once ? 'checked' : '' ?> />

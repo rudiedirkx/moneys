@@ -1,9 +1,9 @@
 <hr />
 
 <details>
-	<summary>Queries (<?= count($db->queries) ?>)</summary>
+	<summary>Queries (<?= count(db()->queries) ?>)</summary>
 	<ul>
-		<? foreach ($db->queries as $query): ?>
+		<? foreach (db()->queries as $query): ?>
 			<li><?= html($query) ?></li>
 		<? endforeach ?>
 	</ul>

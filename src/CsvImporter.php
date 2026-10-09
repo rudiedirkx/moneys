@@ -4,13 +4,19 @@ namespace rdx\moneys;
 
 abstract class CsvImporter implements Importer {
 
+	/**
+	 * @return list<string>
+	 */
 	abstract public function getMandatoryColumns() : array;
 
 	public function getDescription() : string {
 		return "CSV file with mandatory columns '" . implode("', '", $this->getMandatoryColumns()) . "'.";
 	}
 
-	protected function readCsv( $filepath ) {
+	/**
+	 * @return list<array<int|string, ?string>>
+	 */
+	protected function readCsv( string $filepath ) : array {
 		if ( !file_exists($filepath) || !is_readable($filepath) ) {
 			throw new ImportException("Can't read file");
 		}
@@ -20,7 +26,11 @@ abstract class CsvImporter implements Importer {
 		return $data;
 	}
 
-	protected function requireColumns( array $data, array $columns ) {
+	/**
+	 * @param list<array<int|string, ?string>> $data
+	 * @param list<string> $columns
+	 */
+	protected function requireColumns( array $data, array $columns ) : void {
 		$row = $data[0];
 
 		$missing = array_diff($columns, array_keys($row));

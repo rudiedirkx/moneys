@@ -1,0 +1,31 @@
+includes:
+	- vendor/rdx/phpstan-extra/extension-php.neon
+	- vendor/rdx/db/extension.neon
+	- phpstan-baseline.neon
+parameters:
+	level: 6
+	bootstrapFiles:
+		- phpstan.php
+	typeAliases:
+		AssocArray: 'array<string, mixed>'
+	paths:
+		- ./
+		# - src/
+	excludePaths:
+		- vendor/
+	dynamicConstantNames:
+		- MONEYS_LOCAL_IPS
+		- MONEYS_LOCAL_AUTHS
+	rdx_dbfw:
+		aroPropertiesSchemaFile: 'inc.db-schema.php'
+	rdx_php:
+		staticFunctionVariablesEnabled: false
+	treatPhpDocTypesAsCertain: false
+	checkFunctionNameCase: true
+	checkNullables: true
+	# checkExplicitMixed: true
+	# checkImplicitMixed: true
+	reportMaybes: true
+	reportUnmatchedIgnoredErrors: true
+	# ignoreErrors:
+	# 	- message: "#^Method .+::relate_\\w+\\(\\) has no return type specified#"

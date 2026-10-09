@@ -19,7 +19,7 @@ class IngCreditcardImporter extends CsvImporter {
 	public function extractTransactions( string $filepath ) : array {
 		$data = $this->readCsv($filepath);
 
-		$records = array_map(function($tr) {
+		$records = array_map(function(array $tr) {
 			$record = array(
 				'date' => get_date_from_ymd($tr['Date']),
 				'summary' => trim($tr['Description']),

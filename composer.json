@@ -3,7 +3,7 @@
     "description": "Very simple money management.",
     "type": "project",
     "require": {
-        "rdx/db": "^1.28",
+        "rdx/db": "^2.0",
         "symfony/var-dumper": "^5.4"
     },
     "autoload": {
@@ -11,7 +11,6 @@
             "rdx\\moneys\\": "src/"
         },
         "files": [
-            "inc.models.php",
             "inc.functions.php"
         ]
     },
@@ -21,5 +20,9 @@
             "name": "Rudie Dirkx",
             "email": "github@hotblocks.nl"
         }
-    ]
+    ],
+    "require-dev": {
+        "phpstan/phpstan": "^2.3",
+        "rdx/phpstan-extra": "dev-master"
+    }
 }

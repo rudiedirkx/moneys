@@ -36,7 +36,7 @@ return array(
 				'description' => array('null' => false, 'default' => ''),
 				'type' => array('null' => true),
 				'account' => array('null' => true),
-				'amount' => array('null' => false, 'type' => 'real'),
+				'amount' => array('null' => false, 'type' => 'float'),
 				'account_id' => array('unsigned' => true, 'null' => true, 'references' => array('accounts', 'id')),
 				'category_id' => array('unsigned' => true, 'null' => true, 'references' => array('categories', 'id')),
 				'other_party_id' => array('unsigned' => true, 'null' => true, 'references' => array('parties', 'id')),

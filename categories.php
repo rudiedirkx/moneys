@@ -1,5 +1,7 @@
 <?php
 
+use rdx\moneys\Category;
+
 require 'inc.bootstrap.php';
 
 $categories = Category::all('1 ORDER BY name ASC');
@@ -7,7 +9,7 @@ $categories = Category::all('1 ORDER BY name ASC');
 if ( isset($_POST['categories']) ) {
 	header('Content-type: text/plain');
 
-	$db->begin();
+	db()->begin();
 	foreach ( $_POST['categories'] as $id => $cat ) {
 		$name = trim($cat['name']);
 		$category = Category::find($id);
@@ -20,34 +22,35 @@ if ( isset($_POST['categories']) ) {
 			}
 			// Delete
 			else {
-				$db->update('transactions', array('category_id' => null), array('category_id' => $id));
+				db()->update('transactions', array('category_id' => null), array('category_id' => $id));
 				$category->delete();
 			}
 		}
 		// New
 		elseif ( $name ) {
-			$db->insert('categories', $cat);
+			db()->insert('categories', $cat);
 		}
 	}
-	$db->commit();
+	db()->commit();
 
 	return do_redirect('categories');
 }
 
-$expandYear = (int)@$_GET['year'];
+$expandYear = (int) ($_GET['year'] ?? 0);
 
-$spendings = $db->fetch_fields('SELECT COALESCE(category_id, 0), SUM(amount) FROM transactions WHERE ignore = 0 GROUP BY category_id');
+$spendings = db()->fetch_fields('SELECT COALESCE(category_id, 0), SUM(amount) FROM transactions WHERE ignore = 0 GROUP BY category_id');
 // print_r($spendings);
 
 $transactionsPerYear = array();
-$spendingsPerYear = array_reduce($db->fetch('
+$spendingsPerYear = array_reduce(db()->fetch('
 	SELECT COALESCE(category_id, 0) cat, SUBSTR(date, 1, 4) year, SUM(amount) amount, COUNT(1) AS num
 	FROM transactions
 	WHERE ignore = 0
 	GROUP BY cat, year
 	ORDER BY year DESC
-')->all(), function($result, $record) use (&$transactionsPerYear) {
-	@$transactionsPerYear[ $record->year ] += $record->num;
+'), function(array $result, stdClass $record) use (&$transactionsPerYear) {
+	$transactionsPerYear[ $record->year ] ??= 0;
+	$transactionsPerYear[ $record->year ] += $record->num;
 
 	$result[ $record->year ][ $record->cat ] = $record->amount;
 	return $result;
@@ -57,14 +60,15 @@ $spendingsPerYear = array_reduce($db->fetch('
 
 $spendingsPerMonth = $transactionsPerMonth = array();
 if ( $expandYear ) {
-	$spendingsPerMonth = array_reduce($db->fetch('
+	$spendingsPerMonth = array_reduce(db()->fetch('
 		SELECT COALESCE(category_id, 0) category_id, SUBSTR(date, 1, 7) month, SUM(amount) amount, COUNT(1) AS num
 		FROM transactions
 		WHERE ignore = 0 AND date LIKE ?
 		GROUP BY category_id, month
 		ORDER BY month DESC
-	', array($expandYear . '-_%'))->all(), function($result, $record) use (&$transactionsPerMonth) {
-		@$transactionsPerMonth[ $record->month ] += $record->num;
+	', array($expandYear . '-_%')), function(array $result, stdClass $record) use (&$transactionsPerMonth) {
+		$transactionsPerMonth[ $record->month ] ??= 0;
+		$transactionsPerMonth[ $record->month ] += $record->num;
 
 		$result[ $record->month ][ $record->category_id ] = $record->amount;
 		return $result;
@@ -93,13 +97,13 @@ $months = cache_months();
 					?>
 					<th class="<?= $expanded ? 'expanded' : '' ?>">
 						<a title="Toggle monthly stats" href="categories.php<?if (!$expanded): ?>?year=<?= $year ?><? endif ?>"><?= $year ?></a>
-						<span class="num">(<?= (int) @$transactionsPerYear[$year] ?>)</span>
+						<span class="num">(<?= $transactionsPerYear[$year] ?? 0 ?>)</span>
 					</th>
 					<?if ($expanded): ?>
 						<? foreach ($spendingsPerMonth as $month => $data): ?>
 							<th class="expanded">
 								<?= html($months[ (int)substr($month, 5) ]) ?>
-								<span class="num">(<?= (int) @$transactionsPerMonth[$month] ?>)</span>
+								<span class="num">(<?= $transactionsPerMonth[$month] ?? 0 ?>)</span>
 							</th>
 						<? endforeach ?>
 					<? endif ?>
@@ -108,14 +112,14 @@ $months = cache_months();
 		</thead>
 		<tbody>
 			<? foreach ($categories as $cat):
-				$num = $db->count('transactions', array('ignore' => 0, 'category_id' => $cat->id ?: null));
+				$num = db()->count('transactions', array('ignore' => 0, 'category_id' => $cat->id ?: null));
 				?>
 				<tr>
 					<td>
 						<input name="categories[<?= $cat->id ?>][name]" value="<?= html($cat->name) ?>" placeholder="New category..." />
 					</td>
 					<td class="amount">
-						<?= html_money(@$spendings[$cat->id], true) ?>
+						<?= html_money($spendings[$cat->id] ?? null, true) ?>
 					</td>
 					<td>
 						<a href="index.php?category=<?= $cat->id ?: -1 ?>"><?= $num ?></a>
@@ -124,12 +128,12 @@ $months = cache_months();
 						$expanded = $expandYear == $year;
 						?>
 						<td class="amount <?= $expanded ? 'expanded' : '' ?>">
-							<a href="index.php?category=<?= $cat->id ?>&year=<?= $year ?>"><?= html_money(@$data[$cat->id], true) ?></a>
+							<a href="index.php?category=<?= $cat->id ?>&year=<?= $year ?>"><?= html_money($data[$cat->id] ?? null, true) ?></a>
 						</td>
 						<?if ($expanded): ?>
 							<? foreach ($spendingsPerMonth as $month => $data): ?>
 								<td class="expanded">
-									<a href="index.php?category=<?= $cat->id ?>&year=<?= $month ?>"><?= html_money(@$data[$cat->id], true) ?></a>
+									<a href="index.php?category=<?= $cat->id ?>&year=<?= $month ?>"><?= html_money($data[$cat->id] ?? null, true) ?></a>
 								</td>
 							<? endforeach ?>
 						<? endif ?>

@@ -1,6 +1,13 @@
 <?php
 
-function get_doubles() {
+use rdx\moneys\Importer;
+use rdx\moneys\Tag;
+use rdx\moneys\Transaction;
+
+/**
+ * @return array<int, Transaction>
+ */
+function get_doubles() : array {
 	$undouble = Tag::ensure('undouble');
 	return Transaction::query("
 		SELECT t.*
@@ -18,7 +25,10 @@ function get_doubles() {
 	", [$undouble]);
 }
 
-function make_importer( $config ) {
+/**
+ * @param class-string<Importer>|list<mixed> $config
+ */
+function make_importer( $config ) : Importer {
 	if ( is_string($config) ) {
 		return new $config();
 	}
@@ -31,7 +41,7 @@ function make_importer( $config ) {
 	throw new Exception("Invalid importer config: " . var_export($config, true));
 }
 
-function do_auth() {
+function do_auth() : true {
 	$ips = MONEYS_LOCAL_IPS;
 	$regex = '#^(' . str_replace('.', '\\.', implode('|', $ips)) . ')#';
 	if ( preg_match($regex, $_SERVER['REMOTE_ADDR']) ) {
@@ -40,16 +50,16 @@ function do_auth() {
 
 	session_start();
 
-	$session_user = trim(@$_SESSION['moneys']['user']);
-	$session_pass = trim(@$_SESSION['moneys']['pass']);
+	$session_user = trim($_SESSION['moneys']['user'] ?? '');
+	$session_pass = trim($_SESSION['moneys']['pass'] ?? '');
 	if ( $session_user && $session_pass ) {
 		if ( check_auth($session_user, $session_pass) ) {
 			return true;
 		}
 	}
 
-	$login_user = trim(@$_POST['user']);
-	$login_pass = trim(@$_POST['pass']);
+	$login_user = trim($_POST['user'] ?? '');
+	$login_pass = trim($_POST['pass'] ?? '');
 	if ( $login_user && $login_pass ) {
 		$_SESSION['moneys']['user'] = $login_user;
 		if (check_auth($login_user, $login_pass)) {
@@ -72,7 +82,7 @@ function do_auth() {
 	exit;
 }
 
-function check_auth($username, &$password) {
+function check_auth(string $username, string &$password) : bool {
 	$auths = MONEYS_LOCAL_AUTHS;
 	foreach ($auths as $auth) {
 		list($check_username, $check_password) = explode(':', $auth);
@@ -94,19 +104,19 @@ function check_auth($username, &$password) {
 	return false;
 }
 
-function do_400() {
+function do_400() : void {
 	header('HTTP/1.1 400 Error');
 }
 
-function do_403() {
+function do_403() : void {
 	header('HTTP/1.1 403 Access denied');
 }
 
-function do_404() {
+function do_404() : void {
 	header('HTTP/1.1 404 Not found');
 }
 
-function get_date_from_ymd( $date ) {
+function get_date_from_ymd( string $date ) : string {
 	if ( preg_match('#^(\d\d\d\d)\-?(\d\d)\-?(\d\d)$#', $date, $match) ) {
 		return "$match[1]-$match[2]-$match[3]";
 	}
@@ -117,15 +127,15 @@ function get_date_from_ymd( $date ) {
 	throw new InvalidArgumentException("Unknown date format: '$date'");
 }
 
-function get_date_from_d_m_y( $date ) {
+function get_date_from_d_m_y( string $date ) : string {
 	return substr($date, 6, 4) . '-' . substr($date, 3, 2) . '-' . substr($date, 0, 2);
 }
 
-function get_amount_from_eu( $amount ) {
+function get_amount_from_eu( string $amount ) : float {
 	return (float) strtr($amount, array('.' => '', ',' => '.'));
 }
 
-function get_safe_accountno($account) {
+function get_safe_accountno(string $account) : string {
 	$account = trim($account);
 	if ( !$account ) {
 		return '';
@@ -140,7 +150,7 @@ function get_safe_accountno($account) {
 	return ltrim($account, '0');
 }
 
-function sort_opposite( $column, $current ) {
+function sort_opposite( string $column, string $current ) : string {
 	// Reverse direction
 	if ( $column == ltrim($current, '-') ) {
 		return $current[0] == '-' ? $column : '-' . $column;
@@ -150,12 +160,15 @@ function sort_opposite( $column, $current ) {
 	return '-' . $column;
 }
 
-function html_query( $add ) {
+/**
+ * @param AssocArray $add
+ */
+function html_query( array $add ) : string {
 	$q = $add + $_GET;
 	return http_build_query($q);
 }
 
-function html_money( $amount, $sign = false ) {
+function html_money( ?float $amount, bool $sign = false ) : string {
 	if ( $amount !== null ) {
 		$sign = $sign && $amount > 0 ? '+' : '';
 		return $sign . number_format((float)$amount, 2);
@@ -164,7 +177,11 @@ function html_money( $amount, $sign = false ) {
 	return '';
 }
 
-function cache_months() {
+/**
+ * @return array<int, string>
+ */
+function cache_months() : array {
+	/** @var ?array<int, string> $months */
 	static $months;
 	if ( !$months ) {
 		for ( $i=1; $i<=12; $i++ ) {
@@ -174,16 +191,22 @@ function cache_months() {
 	return $months;
 }
 
-function cache_parties() {
+/**
+ * @return array<int|string, stdClass>
+ */
+function cache_parties() : array {
+	/** @var false|array<int|string, stdClass> $parties */
 	static $parties = false;
 	if ( !is_array($parties) ) {
-		global $db;
-		$parties = $db->select_by_field('parties', 'id', '1')->all();
+		$parties = db()->select_by_field('parties', 'id', '1');
 	}
 	return $parties;
 }
 
-function do_redirect( $path = false, $query = null ) {
+/**
+ * @param ?AssocArray $query
+ */
+function do_redirect( ?string $path = null, ?array $query = null ) : never {
 	if ( !$path ) {
 		$location = $_SERVER['HTTP_REFERER'];
 	}
@@ -202,9 +225,14 @@ function do_redirect( $path = false, $query = null ) {
 	exit;
 }
 
-function html_options( $options, $selected = null, $empty = '', $datalist = false ) {
+/**
+ * @param array<int|string, ?scalar> $options
+ */
+function html_options( array $options, mixed $selected = null, string $empty = '', bool $datalist = false ) : string {
 	$html = '';
-	$empty && $html .= '<option value="">' . $empty . '</option>';
+	if ( $empty ) {
+		$html .= '<option value="">' . $empty . '</option>';
+	}
 	foreach ( $options AS $value => $label ) {
 		$isSelected = $value == $selected ? ' selected' : '';
 		$value = $datalist ? html($label) : html($value);
@@ -214,12 +242,18 @@ function html_options( $options, $selected = null, $empty = '', $datalist = fals
 	return $html;
 }
 
-function html($str) {
-	return htmlspecialchars($str ?? '', ENT_COMPAT, 'UTF-8');
+function html(string|int|float|null $str) : string {
+	return htmlspecialchars((string) $str, ENT_COMPAT, 'UTF-8');
 }
 
-function csv_read_doc( $data, $withHeader = true, $keepCols = array() ) {
-	$keepCols and $keepCols = array_flip($keepCols);
+/**
+ * @param list<string> $keepCols
+ * @return list<array<int|string, ?string>>
+ */
+function csv_read_doc( string $data, bool $withHeader = true, array $keepCols = array() ) : array {
+	if ( $keepCols ) {
+		$keepCols = array_flip($keepCols);
+	}
 
 	if ( substr($data, 0, 3) === chr(0xEF) . chr(0xBB) . chr(0xBF) ) {
 		$data = substr($data, 3);
@@ -227,7 +261,7 @@ function csv_read_doc( $data, $withHeader = true, $keepCols = array() ) {
 
 	$header = array();
 	$delim = ',';
-	$csv = array_map(function($line) use (&$delim, &$header, $withHeader, $keepCols) {
+	$csv = array_map(function(string $line) use (&$delim, &$header, $withHeader, $keepCols) {
 		$data = str_getcsv(trim($line), $delim, '"', '"');
 		if (count($data) == 1 && strpos($data[0], ';') !== false) {
 			$delim = ';';
@@ -237,7 +271,9 @@ function csv_read_doc( $data, $withHeader = true, $keepCols = array() ) {
 		if ( $withHeader ) {
 			if ( $header ) {
 				$data = array_combine($header, $data);
-				$keepCols and $data = array_intersect_key($data, $keepCols);
+				if ( $keepCols ) {
+					$data = array_intersect_key($data, $keepCols);
+				}
 			}
 			else {
 				$header = $data;
@@ -245,19 +281,28 @@ function csv_read_doc( $data, $withHeader = true, $keepCols = array() ) {
 		}
 		return $data;
 	}, explode("\n", trim($data)));
-	$withHeader and $csv = array_slice($csv, 1);
+	if ( $withHeader ) {
+		$csv = array_slice($csv, 1);
+	}
 	return $csv;
 }
 
-function csv_escape( $val ) {
-	return str_replace('"', '""', $val);
+function csv_escape( string|int|float|null $val ) : string {
+	return str_replace('"', '""', (string) $val);
 }
 
-function csv_row( $data ) {
+/**
+ * @param list<string|int|float|null> $data
+ */
+function csv_row( array $data ) : string {
 	return '"' . implode('","', array_map('csv_escape', $data)) . '"' . "\r\n";
 }
 
-function csv_cols( $data ) {
+/**
+ * @param list<string> $data
+ * @return list<string>
+ */
+function csv_cols( array $data ) : array {
 	$cols = array();
 	foreach ( $data as $i => $name ) {
 		$cols[] = !is_int($i) && is_callable($name) ? $i : $name;
@@ -265,11 +310,14 @@ function csv_cols( $data ) {
 	return $cols;
 }
 
-function csv_rows( $data ) {
+/**
+ * @param list<list<string|int|float|null>> $data
+ */
+function csv_rows( array $data ) : string {
 	return implode(array_map('csv_row', $data));
 }
 
-function csv_header( $filename = '' ) {
+function csv_header( string $filename = '' ) : void {
 	header('Content-Type: text/plain; charset=utf-8');
 
 	if ( $filename ) {
@@ -277,7 +325,11 @@ function csv_header( $filename = '' ) {
 	}
 }
 
-function csv_file( $data, $cols, $filename = '' ) {
+/**
+ * @param array<int, object> $data
+ * @param list<string> $cols
+ */
+function csv_file( array $data, array $cols, string $filename = '' ) : void {
 	csv_header($filename);
 
 	echo csv_row(csv_cols($cols));
@@ -292,4 +344,8 @@ function csv_file( $data, $cols, $filename = '' ) {
 	if ( $filename ) {
 		exit;
 	}
+}
+
+function db() : db_generic {
+	return $GLOBALS['db'];
 }

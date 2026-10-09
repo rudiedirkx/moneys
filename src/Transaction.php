@@ -1,95 +1,16 @@
 <?php
 
-class Model extends db_generic_model {
+namespace rdx\moneys;
 
-}
-
-class Tag extends Model {
-	static public $_table = 'tags';
-
-	static function decorateTransactions( array $transactions, array $tags ) {
-		foreach ( $transactions as $tr ) {
-			$tr->tags = array();
-		}
-
-		$tagged = self::$_db->select('tagged', array('transaction_id' => array_keys($transactions)))->all();
-		foreach ( $tagged as $record ) {
-			$transactions[ $record->transaction_id ]->tags[] = $tags[ $record->tag_id ];
-		}
-	}
-
-	static function split( $tags ) {
-		if ( !is_array($tags) ) {
-			$tags = preg_split('#\s+#', trim($tags));
-		}
-		return array_values(array_unique(array_filter($tags)));
-	}
-
-	static function ensure( $tag ) {
-		$tag = trim($tag, '- ');
-		if ( $object = self::get($tag) ) {
-			return $object->id;
-		}
-
-		return self::insert(compact('tag'));
-	}
-
-	static function get( $tag ) {
-		return self::first(compact('tag'));
-	}
-}
-
-class Category extends Model {
-	static public $_table = 'categories';
-}
-
-class Party extends Model {
-	static public $_table = 'parties';
-
-	static function presave( array &$data ) {
-		parent::presave($data);
-
-		isset($data['category_id']) and empty($data['category_id']) and $data['category_id'] = null;
-	}
-}
-
-class Account extends Model {
-	static public $_table = 'accounts';
-
-	function get_usage_query() {
-		return self::$_db->replaceholders('account_id = ? AND ignore <> ?', [$this->id, Transaction::IGNORE_ACCOUNT_PAY_FOR_BALANCE]);
-	}
-
-	function get_num_usage_transactions() {
-		return self::$_db->count('transactions', $this->usage_query);
-	}
-
-	function get_usage_balance() {
-		return round(self::$_db->select_one('transactions', 'sum(amount)', $this->usage_query), 2);
-	}
-
-	function get_payments_query() {
-		return self::$_db->replaceholders('account_id = ? AND ignore = ?', [$this->id, Transaction::IGNORE_ACCOUNT_PAY_FOR_BALANCE]);
-	}
-
-	function get_num_payments_transactions() {
-		return self::$_db->count('transactions', $this->payments_query);
-	}
-
-	function get_payments_balance() {
-		return round(self::$_db->select_one('transactions', 'sum(amount)', $this->payments_query), 2);
-	}
-
-	function __toString() {
-		return $this->name;
-	}
-}
+use Exception;
+use stdClass;
 
 class Transaction extends Model {
-	const IGNORE_SPLIT = 1;
-	const IGNORE_ACCOUNT_BALANCE = 2; // Positive, on the Account's balance
-	const IGNORE_ACCOUNT_PAY_FOR_BALANCE = 3; // Negative, on the Main account
+	public const IGNORE_SPLIT = 1;
+	private const IGNORE_ACCOUNT_BALANCE = 2; // Positive, on the Account's balance
+	public const IGNORE_ACCOUNT_PAY_FOR_BALANCE = 3; // Negative, on the Main account
 
+	/** @var array<int, string> */
 	static public $_ignores = [
 		self::IGNORE_SPLIT => 'split',
 		self::IGNORE_ACCOUNT_BALANCE => 'balance (positive on Account)',
@@ -98,11 +19,15 @@ class Transaction extends Model {
 
 	static public $_table = 'transactions';
 
+	/** @var array<int|string, ?scalar> */
 	static public $_categories = array();
 
 	// public $tags = array();
 
-	static function getTypes() {
+	/**
+	 * @return array<string, string>
+	 */
+	static public function getTypes() : array {
 		$importers = array_map('make_importer', MONEYS_IMPORTERS);
 
 		$types = [];
@@ -112,7 +37,10 @@ class Transaction extends Model {
 		return $types;
 	}
 
-	static function allMonths() {
+	/**
+	 * @return array<int|string, int|string>
+	 */
+	static public function allMonths() : array {
 		$months = self::$_db->select_fields(self::$_table, "strftime('%Y-%m-01', date) d", '1 group by d order by d desc');
 		$options = [];
 		$lastYear = 0;
@@ -137,11 +65,11 @@ class Transaction extends Model {
 		return $options;
 	}
 
-	static function untag( $transactionId, $tagId ) {
-		return static::tag($transactionId, $tagId, true);
+	static public function untag( int $transactionId, int $tagId ) : void {
+		static::tag($transactionId, $tagId, true);
 	}
 
-	static function tag( $transactionId, $tagId, $delete = false ) {
+	static public function tag( int $transactionId, int $tagId, bool $delete = false ) : void {
 		try {
 			$method = $delete ? 'delete' : 'insert';
 			call_user_func([self::$_db, $method], 'tagged', array(
@@ -154,33 +82,37 @@ class Transaction extends Model {
 		}
 	}
 
-	static function presave( array &$data ) {
+	static public function presave( array &$data ) : void {
 		parent::presave($data);
 
-		isset($data['category_id']) and empty($data['category_id']) and $data['category_id'] = null;
+		if ( isset($data['category_id']) && empty($data['category_id']) ) {
+			$data['category_id'] = null;
+		}
 
-		isset($data['account_id']) and empty($data['account_id']) and $data['account_id'] = null;
+		if ( isset($data['account_id']) && empty($data['account_id']) ) {
+			$data['account_id'] = null;
+		}
 
 		$data['hash'] = microtime() . ' ' . rand();
 	}
 
-	static function insert( array $data ) {
+	static public function insert( array $data ) {
 		// Extract tags
-		$tags = @$data['tags'];
+		$tags = $data['tags'] ?? null;
 		unset($data['tags']);
 
-		$id = parent::insert($data);
-		$transaction = self::find($id);
+		parent::insert($data);
+		$transaction = self::find(self::$_db->insert_id());
 
 		// Save tags
 		if ( $tags ) {
 			$transaction->saveTags($tags, false);
 		}
 
-		return $id;
+		return true;
 	}
 
-	function similarityTo(self $other) {
+	public function similarityTo(self $other) : float|false {
 		if ($other->date != $this->date) {
 			return false;
 		}
@@ -193,7 +125,10 @@ class Transaction extends Model {
 		return $similarity;
 	}
 
-	function saveTags( $tags, $dbTransaction = true ) {
+	/**
+	 * @param string|list<string> $tags
+	 */
+	public function saveTags( string|array $tags, bool $dbTransaction = true ) : void {
 		$tags = Tag::split($tags);
 
 		if ( $dbTransaction ) {
@@ -215,12 +150,12 @@ class Transaction extends Model {
 		}
 	}
 
-	function get_type_label() {
+	protected function get_type_label() : ?string {
 		$types = self::getTypes();
 		return $types[$this->type] ?? null;
 	}
 
-	function get_type_label_full() {
+	protected function get_type_label_full() : ?string {
 		$label = $this->type_label;
 		if ($this->type && $this->type != $label) {
 			$label = "$label ($this->type)";
@@ -228,28 +163,34 @@ class Transaction extends Model {
 		return $label;
 	}
 
-	function get_hide_category_dropdown() {
+	protected function get_hide_category_dropdown() : bool {
 		return $this->ignore && !$this->category_id;
 	}
 
-	function get_ignore_label() {
+	protected function get_ignore_label() : string {
 		return $this->ignore ? self::$_ignores[$this->ignore] : '';
 	}
 
-	function get_notes_summary() {
+	protected function get_notes_summary() : string {
 		if ( $this->notes ) {
 			$notes = preg_split('#[\r\n]+#', trim($this->notes));
-			return $notes[0];
+			return $notes[0]; // @phpstan-ignore offsetAccess.notFound
 		}
 
 		return '';
 	}
 
-	function get_child_transactions() {
+	/**
+	 * @return array<int, static>
+	 */
+	protected function get_child_transactions() : array {
 		return self::all(['parent_transaction_id' => $this->id]);
 	}
 
-	function get_tags() {
+	/**
+	 * @return array<int|string, ?scalar>
+	 */
+	protected function get_tags() : array {
 		return self::$_db->fetch_fields('
 			SELECT t.id, t.tag
 			FROM tagged g
@@ -259,45 +200,52 @@ class Transaction extends Model {
 		', array($this->id));
 	}
 
-	function get_category() {
-		return @self::$_categories[ (int)$this->category_id ] ?: '';
+	protected function get_category() : string {
+		$name = self::$_categories[ (int)$this->category_id ] ?? '';
+		return (string) $name;
 	}
 
-	function get_amount2dec() {
+	protected function get_amount2dec() : string {
 		return number_format($this->amount, 2, '.', ',');
 	}
 
-	function get_tags_as_string() {
+	protected function get_tags_as_string() : string {
 		return implode(' ', $this->tags);
 	}
 
-	function get_sumdesc() {
+	protected function get_sumdesc() : string {
 		return preg_replace('/ {2,}/', '   ', $this->summary . ' ' . $this->description);
 	}
 
-	function get_safe_sumdesc() {
+	protected function get_safe_sumdesc() : string {
 		return str_replace(' ', '', mb_strtolower($this->sumdesc));
 	}
 
-	function get_simple_uniq() {
+	protected function get_simple_uniq() : string {
 		return $this->date . ':' . $this->account . ':' . $this->amount;
 	}
 
-	function get_month() {
+	protected function get_month() : string {
 		return substr($this->date, 0, 7);
 	}
 
-	function get_party_suggestions() {
+	/**
+	 * @return array<int|string, stdClass>
+	 */
+	protected function get_party_suggestions() : array {
 		return array_intersect_key(cache_parties(), array_flip($this->party_id_suggestions));
 	}
 
-	function get_party_id_suggestions() {
+	/**
+	 * @return list<int>
+	 */
+	protected function get_party_id_suggestions() : array {
 		$parties = cache_parties();
 
 		$suggestions = array();
 		foreach ( $parties as $party ) {
-			if ( $party['auto_sumdesc'] ) {
-				$regex = '#' . $party['auto_sumdesc'] . '#i';
+			if ( $party->auto_sumdesc ) {
+				$regex = '#' . $party->auto_sumdesc . '#i';
 				if ( preg_match($regex, $this->description) || preg_match($regex, $this->summary) ) {
 					$suggestions[] = $party->id;
 				}
@@ -307,25 +255,33 @@ class Transaction extends Model {
 		return $suggestions;
 	}
 
-	function get_category_suggestions() {
+	/**
+	 * @return list<stdClass>
+	 */
+	protected function get_category_suggestions() : array {
 		if ( $this->category_id_suggestions ) {
-			$categories = self::$_db->select('categories', 'id in (?)', array($this->category_id_suggestions))->all();
+			$categories = self::$_db->select('categories', 'id in (?)', array($this->category_id_suggestions));
 			return $categories;
 		}
 
 		return array();
 	}
 
-	function get_category_id_suggestion() {
+	protected function get_category_id_suggestion() : ?int {
 		if ( count($this->category_id_suggestions) == 1 ) {
 			return reset($this->category_id_suggestions);
 		}
+
+		return null;
 	}
 
-	function get_category_id_suggestions() {
+	/**
+	 * @return array<int|string, ?int>
+	 */
+	protected function get_category_id_suggestions() : array {
 		if ( $this->party_id_suggestions ) {
 			$parties = array_intersect_key(cache_parties(), array_flip($this->party_id_suggestions));
-			$category_ids = array_unique(array_map(function($party) {
+			$category_ids = array_unique(array_map(function(stdClass $party) {
 				return $party->category_id;
 			}, $parties));
 
@@ -335,7 +291,7 @@ class Transaction extends Model {
 		return array();
 	}
 
-	function get_party_category_once() {
+	protected function get_party_category_once() : bool {
 		if ( count($this->party_suggestions) == 1 ) {
 			$party = reset($this->party_suggestions);
 			return (bool) $party->once;
@@ -344,7 +300,10 @@ class Transaction extends Model {
 		return false;
 	}
 
-	function get_tag_suggestions() {
+	/**
+	 * @return list<string>
+	 */
+	protected function get_tag_suggestions() : array {
 		$tags = array();
 
 		if ( $this->party_suggestions ) {
@@ -358,24 +317,25 @@ class Transaction extends Model {
 		return $tags;
 	}
 
-	function get_selected_category_id() {
+	protected function get_selected_category_id() : ?int {
 		return $this->category_id ?: $this->category_id_suggestion;
 	}
 
-	function get_formatted_amount() {
+	protected function get_formatted_amount() : string {
 		$amount = (float)$this->amount;
-		return html_money($amount, 2, true);
+		return html_money($amount, true);
 	}
 
-	function get_classes() {
-		$classes = array(
+	/**
+	 * @return list<string>
+	 */
+	protected function get_classes() : array {
+		return array(
 			$this->amount > 0 ? 'dir-in' : 'dir-out',
 		);
-		$this->new_group and $classes[] = 'new-group';
-		return $classes;
 	}
 
-	function get_is_new() {
+	protected function get_is_new() : bool {
 		return !$this->category_id && !$this->tags;
 	}
 

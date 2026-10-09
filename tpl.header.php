@@ -1,11 +1,13 @@
 <?php
 
-$lastImport = $db->select_one('transactions', 'date', "type NOT IN ('cc', 'split') ORDER BY date DESC LIMIT 1");
+$lastImport = db()->select_one('transactions', 'date', "type NOT IN ('cc', 'split') ORDER BY date DESC LIMIT 1");
 $daysSinceLastImport = $lastImport ? round((time() - strtotime($lastImport)) / 86400) : '?';
 
 $doubles = count(get_doubles());
 
-isset($pageTitle) or $pageTitle = substr(basename($_SERVER['PHP_SELF']), 0, -4);
+if ( !isset($pageTitle) ) {
+	$pageTitle = substr(basename($_SERVER['PHP_SELF']), 0, -4);
+}
 
 ?>
 <!doctype html>
@@ -13,7 +15,7 @@ isset($pageTitle) or $pageTitle = substr(basename($_SERVER['PHP_SELF']), 0, -4);
 
 <head>
 <meta charset="utf-8" />
-<title>Moneys | <?= $pageTitle ?></title>
+<title>Moneys | <?= html($pageTitle) ?></title>
 <meta name="viewport" content="initial-scale=0.2" />
 <link rel="icon" type="image/png" href="favicon-128.png" sizes="128x128" />
 <link rel="icon" href="favicon.ico" type="image/x-icon" />
@@ -134,5 +136,5 @@ select:focus {
 	|
 	<a href="types.php">Types</a>
 	|
-	<span title="Latest transaction: <?= $lastImport ?>"><?= $daysSinceLastImport ?> days since last import</span>
+	<span title="Latest transaction: <?= html($lastImport) ?>"><?= html($daysSinceLastImport) ?> days since last import</span>
 </p>

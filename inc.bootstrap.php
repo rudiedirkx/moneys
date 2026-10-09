@@ -6,10 +6,7 @@ require __DIR__ . '/vendor/autoload.php';
 // do_auth();
 
 // Connect to db
-$db = db_sqlite::open(array('database' => DB_FILE));
-if ( !$db ) {
-	exit("<p>No db...</p>");
-}
+$db = new db_sqlite(DB_FILE);
 
 $db->ensureSchema(require 'inc.db-schema.php');
 db_generic_model::$_db = $db;

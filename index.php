@@ -1,14 +1,17 @@
 <?php
 
+use rdx\moneys\Tag;
+use rdx\moneys\Transaction;
+
 require 'inc.bootstrap.php';
 
 $perPage = 100;
-$page = (int)@$_GET['page'];
+$page = (int) ($_GET['page'] ?? 0);
 $export = isset($_GET['export']);
 
 if ( isset($_POST['check']) ) {
 	if ( $tags = trim($_POST['add_tag']) ) {
-		$db->begin();
+		db()->begin();
 		foreach ( Tag::split($tags) as $tag ) {
 			$delete = $tag[0] == '-';
 			$tagId = Tag::ensure($tag);
@@ -17,14 +20,14 @@ if ( isset($_POST['check']) ) {
 				call_user_func([Transaction::class, $delete ? 'untag' : 'tag'], $trId, $tagId);
 			}
 		}
-		$db->commit();
+		db()->commit();
 	}
 
 	return do_redirect();
 }
 
 elseif ( isset($_POST['category']) ) {
-	$db->begin();
+	db()->begin();
 
 	Transaction::all(['id' => array_keys($_POST['category'])]);
 
@@ -34,14 +37,14 @@ elseif ( isset($_POST['category']) ) {
 	}
 
 	// Save new tags
-	foreach ( (array) @$_POST['trtags'] as $trId => $tags ) {
+	foreach ( (array) ($_POST['trtags'] ?? []) as $trId => $tags ) {
 		foreach ( $tags as $tag ) {
 			$tagId = Tag::ensure($tag);
 			Transaction::tag($trId, $tagId);
 		}
 	}
 
-	$db->commit();
+	db()->commit();
 
 	return do_redirect();
 }
@@ -57,7 +60,7 @@ if ( !empty($_GET['account']) ) {
 
 	// Show some hidden transactions
 	unset($conditions['ignore']);
-	$conditions[] = $db->replaceholders($_GET['account'] < 0 ? 'ignore = ?' : 'ignore <> ?', [Transaction::IGNORE_ACCOUNT_PAY_FOR_BALANCE]);
+	$conditions[] = db()->replaceholders($_GET['account'] < 0 ? 'ignore = ?' : 'ignore <> ?', [Transaction::IGNORE_ACCOUNT_PAY_FOR_BALANCE]);
 }
 if ( !empty($_GET['category']) ) {
 	$conditions['category_id'] = $_GET['category'] == -1 ? null : $_GET['category'];
@@ -67,27 +70,29 @@ if ( !empty($_GET['tag']) ) {
 		$conditions[] = 'NOT EXISTS (SELECT * FROM tagged WHERE transaction_id = transactions.id)';
 	}
 	else {
-		$conditions[] = $db->replaceholders('id IN (SELECT transaction_id FROM tagged WHERE tag_id = ?)', array($_GET['tag']));
+		$conditions[] = db()->replaceholders('id IN (SELECT transaction_id FROM tagged WHERE tag_id = ?)', array($_GET['tag']));
 	}
 }
-if ( @$_GET['min'] != '' && @$_GET['max'] != '' ) {
+if ( ($_GET['min'] ?? '') != '' && ($_GET['max'] ?? '') != '' ) {
 	$min = (float) $_GET['min'];
 	$max = (float) $_GET['max'];
-	$max < $min and list($min, $max) = array($max, $min);
-	$conditions[] = $db->replaceholders('amount BETWEEN ? AND ?', array($min, $max));
+	if ( $max < $min ) {
+		list($min, $max) = array($max, $min);
+	}
+	$conditions[] = db()->replaceholders('amount BETWEEN ? AND ?', array($min, $max));
 }
-elseif ( @$_GET['min'] != '' ) {
+elseif ( ($_GET['min'] ?? '') != '' ) {
 	$min = (float) $_GET['min'];
-	$conditions[] = $db->replaceholders('(amount = ? OR amount = ?)', array($min, -$min));
+	$conditions[] = db()->replaceholders('(amount = ? OR amount = ?)', array($min, -$min));
 }
 if ( !empty($_GET['year']) ) {
 	if ( preg_match('#^(\d{4})-q(\d)$#', $_GET['year'], $match) ) {
-		$qend = $match[1] . '-' . str_pad($match[2] * 3, 2, '0', STR_PAD_LEFT) . '-31';
-		$qstart = $match[1] . '-' . str_pad($match[2] * 3 - 2, 2, '0', STR_PAD_LEFT) . '-01';
-		$conditions[] = $db->replaceholders('date BETWEEN ? AND ?', [$qstart, $qend]);
+		$qend = sprintf('%s-%02d-31', $match[1], $match[2] * 3);
+		$qstart = sprintf('%s-%02d-01', $match[1], $match[2] * 3 - 2);
+		$conditions[] = db()->replaceholders('date BETWEEN ? AND ?', [$qstart, $qend]);
 	}
 	else {
-		$conditions[] = $db->replaceholders('date LIKE ?', [$_GET['year'] . '-_%']);
+		$conditions[] = db()->replaceholders('date LIKE ?', [$_GET['year'] . '-_%']);
 	}
 }
 if ( !empty($_GET['type']) ) {
@@ -95,14 +100,14 @@ if ( !empty($_GET['type']) ) {
 }
 if ( !empty($_GET['search']) ) {
 	$q = '%' . $_GET['search'] . '%';
-	$conditions[] = $db->replaceholders('(description LIKE ? OR summary LIKE ? OR notes LIKE ? OR account LIKE ?)', array($q, $q, $q, $q));
+	$conditions[] = db()->replaceholders('(description LIKE ? OR summary LIKE ? OR notes LIKE ? OR account LIKE ?)', array($q, $q, $q, $q));
 }
 if ( count($conditions) && $conditions != $emptyConditions ) {
 	$perPage = 250;
 }
 
 $offset = $page * $perPage;
-$totalRecords = $db->count('transactions', $conditions);
+$totalRecords = db()->count('transactions', $conditions);
 $pages = ceil($totalRecords / $perPage);
 
 $sort = isset($_GET['sort']) ? preg_replace('#[^\w-]#', '', $_GET['sort']) : '-date';
@@ -110,17 +115,17 @@ $sortDirection = $sort[0] == '-' ? 'DESC' : 'ASC';
 $sortColumn = ltrim($sort, '-');
 
 $pager = $export ? '' : 'LIMIT ' . $perPage . ' OFFSET ' . $offset;
-$query = ($db->stringifyConditions($conditions) ?: '1') . ' ORDER BY ' . $sortColumn . ' ' . $sortDirection . ', ABS(amount) DESC ' . $pager;
+$query = (db()->stringifyConditions($conditions) ?: '1') . ' ORDER BY ' . $sortColumn . ' ' . $sortDirection . ', ABS(amount) DESC ' . $pager;
 $transactions = Transaction::all($query);
 
 $tids = array_keys($transactions);
 
-$categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
+$categories = db()->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
 Transaction::$_categories = $categories;
 
 $years = Transaction::allMonths();
 
-$tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
+$tags = db()->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 Tag::decorateTransactions($transactions, $tags);
 
 $types = Transaction::getTypes();
@@ -140,15 +145,15 @@ require 'tpl.header.php';
 ?>
 <form method="get" action>
 	<input type="hidden" name="sort" value="<?= html($sort) ?>" />
-	<input type="hidden" name="type" value="<?= html(@$_GET['type']) ?>" />
-	<input type="hidden" name="account" value="<?= html(@$_GET['account']) ?>" />
-	<input type="hidden" name="ignore" value="<?= html(@$_GET['ignore']) ?>" />
+	<input type="hidden" name="type" value="<?= html($_GET['type'] ?? '') ?>" />
+	<input type="hidden" name="account" value="<?= html($_GET['account'] ?? '') ?>" />
+	<input type="hidden" name="ignore" value="<?= html($_GET['ignore'] ?? '') ?>" />
 	<p>
-		Category: <select name="category"><?= html_options(array('-1' => '-- none') + $categories, @$_GET['category'], '-- all') ?></select>
-		Tag: <select name="tag"><?= html_options(array('-1' => '-- none') + $tags, @$_GET['tag'], '-- all') ?></select>
-		Amount: <input name="min" value="<?= @$_GET['min'] ?>" size="4" /> - <input name="max" value="<?= @$_GET['max'] ?>" size="4" />
-		Period: <select name="year"><?= html_options($years, @$_GET['year'], '-- all') ?></select>
-		Search: <input id="search-transactions" type="search" name="search" value="<?= @$_GET['search'] ?>" placeholder="Summ, Desc, Acc.no, Notes" />
+		Category: <select name="category"><?= html_options(array('-1' => '-- none') + $categories, $_GET['category'] ?? null, '-- all') ?></select>
+		Tag: <select name="tag"><?= html_options(array('-1' => '-- none') + $tags, $_GET['tag'] ?? null, '-- all') ?></select>
+		Amount: <input name="min" value="<?= html($_GET['min'] ?? '') ?>" size="4" /> - <input name="max" value="<?= html($_GET['max'] ?? '') ?>" size="4" />
+		Period: <select name="year"><?= html_options($years, $_GET['year'] ?? null, '-- all') ?></select>
+		Search: <input id="search-transactions" type="search" name="search" value="<?= html($_GET['search'] ?? '') ?>" placeholder="Summ, Desc, Acc.no, Notes" />
 		<button>&gt;&gt;</button>
 	</p>
 </form>
@@ -166,7 +171,7 @@ include 'tpl.transactions.php';
 
 <details>
 	<summary>Conditions</summary>
-	<pre><?= html(print_r($conditions, 1)) ?></pre>
+	<pre><?= html(print_r($conditions, true)) ?></pre>
 </details>
 
 <details>

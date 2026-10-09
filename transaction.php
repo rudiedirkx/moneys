@@ -1,5 +1,7 @@
 <?php
 
+use rdx\moneys\Transaction;
+
 require 'inc.bootstrap.php';
 
 $id = (int)$_GET['id'];
@@ -10,19 +12,28 @@ if ( !$transaction ) {
 	exit('Transaction not found.');
 }
 
-$subTransactions = $transaction->child_transactions;
+$subTransactions = array_map(function(Transaction $child) {
+	return [
+		'id' => $child->id,
+		'date' => $child->date,
+		'amount' => $child->amount,
+		'description' => $child->description,
+		'category_id' => $child->category_id,
+		'tags' => $child->tags,
+	];
+}, $transaction->child_transactions);
 
 // DELETE
-if ( @$_POST['_action'] == 'delete' ) {
-	$db->delete('transactions', compact('id'));
+if ( ($_POST['_action'] ?? '') == 'delete' ) {
+	db()->delete('transactions', compact('id'));
 
 	return do_redirect('index');
 }
 
 // UNSPLIT
-if ( @$_POST['_action'] == 'unsplit' ) {
+if ( ($_POST['_action'] ?? '') == 'unsplit' ) {
 	// Delete children
-	$db->delete('transactions', array('parent_transaction_id' => $id));
+	db()->delete('transactions', array('parent_transaction_id' => $id));
 
 	// Unhide
 	$transaction->update(array('ignore' => 0));
@@ -101,13 +112,13 @@ if ( isset($_POST['amount'], $_POST['description'], $_POST['date'], $_POST['cate
 
 	$error = false;
 
-	$round = function($number) {
+	$round = function(float $number) {
 		return number_format($number, 2, '.', '');
 	};
 
 	if ( $round($totalAmount) != $round($transaction->amount) ) {
 		if ( $round(abs($totalAmount)) == $round(abs($transaction->amount)) ) {
-			$subTransactions = array_map(function($transaction) {
+			$subTransactions = array_map(function(array $transaction) {
 				$transaction['amount'] *= -1;
 				return $transaction;
 			}, $subTransactions);
@@ -120,7 +131,7 @@ if ( isset($_POST['amount'], $_POST['description'], $_POST['date'], $_POST['cate
 	}
 
 	if ( !$error ) {
-		$db->begin();
+		db()->begin();
 
 		// Save parent
 		$transaction->update(array(
@@ -128,14 +139,14 @@ if ( isset($_POST['amount'], $_POST['description'], $_POST['date'], $_POST['cate
 		));
 
 		// Delete children
-		$db->delete('transactions', array('parent_transaction_id' => $transaction->id));
+		db()->delete('transactions', array('parent_transaction_id' => $transaction->id));
 
 		// Save children
 		foreach ( $subTransactions as $subTransaction ) {
 			Transaction::insert($subTransaction);
 		}
 
-		$db->commit();
+		db()->commit();
 
 		return do_redirect('transaction', compact('id'));
 	}
@@ -143,9 +154,9 @@ if ( isset($_POST['amount'], $_POST['description'], $_POST['date'], $_POST['cate
 
 require 'tpl.header.php';
 
-$accounts = $db->select_fields('accounts', 'id, name', '1 ORDER BY name ASC');
-$categories = $db->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
-$tags = $db->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
+$accounts = db()->select_fields('accounts', 'id, name', '1 ORDER BY name ASC');
+$categories = db()->select_fields('categories', 'id, name', '1 ORDER BY name ASC');
+$tags = db()->select_fields('tags', 'id, tag', '1 ORDER BY tag ASC');
 
 ?>
 <style>
@@ -197,7 +208,7 @@ ul.compact {
 		</tr>
 		<tr>
 			<th>Type</th>
-			<td><?= $transaction->type_label_full ?></td>
+			<td><?= html($transaction->type_label_full) ?></td>
 		</tr>
 		<tr>
 			<th>Account no</th>
@@ -248,7 +259,7 @@ ul.compact {
 			<td>
 				<ul class="compact">
 					<? foreach ($transaction->party_suggestions as $party): ?>
-						<li><a href="parties.php#p-<?= $party->id ?>"><?= $party->name ?></a></li>
+						<li><a href="parties.php#p-<?= $party->id ?>"><?= html($party->name) ?></a></li>
 					<? endforeach ?>
 				</ul>
 			</td>
@@ -261,7 +272,7 @@ ul.compact {
 						Categories (<?= count($transaction->category_suggestions) ?>)
 						<ul class="compact">
 							<? foreach ($transaction->category_suggestions as $category): ?>
-								<li><?= $category->name ?></li>
+								<li><?= html($category->name) ?></li>
 							<? endforeach ?>
 						</ul>
 					</li>
@@ -269,7 +280,7 @@ ul.compact {
 						Tags (<?= count($transaction->tag_suggestions) ?>)
 						<ul class="compact">
 							<? foreach ($transaction->tag_suggestions as $tag): ?>
-								<li><?= $tag ?></li>
+								<li><?= html($tag) ?></li>
 							<? endforeach ?>
 						</ul>
 					</li>
@@ -335,11 +346,11 @@ ul.compact {
 				<? $subTransactions[] = array('date' => $transaction->date) ?>
 				<? foreach ( $subTransactions as $i => $subTransaction ): ?>
 					<tr class="subTransaction">
-						<td><input name="amount[]" class="amount" type="number" step="any" value="<?= number_format(@$subTransaction['amount'] ?: 0, 2, '.', '') ?>" /></td>
-						<td><input name="description[]" class="description" value="<?= html(@$subTransaction['description']) ?>" /></td>
-						<td><input name="date[]" class="date" type="date" value="<?= html(@$subTransaction['date']) ?>" /></td>
-						<td><select name="category[]" class="category"><?= html_options($categories, @$subTransaction['category_id'], '--') ?></select></td>
-						<td><input name="tags[]" class="tags" list="data-tags" value="<?= html(implode(' ', (array)@$subTransaction['tags'])) ?>" /></td>
+						<td><input name="amount[]" class="amount" type="number" step="any" value="<?= number_format($subTransaction['amount'] ?? 0, 2, '.', '') ?>" /></td>
+						<td><input name="description[]" class="description" value="<?= html($subTransaction['description'] ?? '') ?>" /></td>
+						<td><input name="date[]" class="date" type="date" value="<?= html($subTransaction['date'] ?? '') ?>" /></td>
+						<td><select name="category[]" class="category"><?= html_options($categories, $subTransaction['category_id'] ?? null, '--') ?></select></td>
+						<td><input name="tags[]" class="tags" list="data-tags" value="<?= html(implode(' ', (array) ($subTransaction['tags'] ?? []))) ?>" /></td>
 						<td>
 							<?if (!empty($subTransaction['id'])): ?>
 								<a href="transaction.php?id=<?= $subTransaction['id'] ?>">&gt;&gt;</a>

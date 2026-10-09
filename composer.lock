@@ -4,29 +4,37 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7258c9f13f59d1e045422c93414ca936",
+    "content-hash": "fd4e339b4fd09d19d47f914749076077",
     "packages": [
         {
             "name": "rdx/db",
-            "version": "1.28",
+            "version": "2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rudiedirkx/db_generic.git",
-                "reference": "666bec8a65f954007bb0011fb2cf25e4060dbab9"
+                "reference": "483cd7c1ce2188f4be857bf7f5cbf020c2c01c0e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rudiedirkx/db_generic/zipball/666bec8a65f954007bb0011fb2cf25e4060dbab9",
-                "reference": "666bec8a65f954007bb0011fb2cf25e4060dbab9",
+                "url": "https://api.github.com/repos/rudiedirkx/db_generic/zipball/483cd7c1ce2188f4be857bf7f5cbf020c2c01c0e",
+                "reference": "483cd7c1ce2188f4be857bf7f5cbf020c2c01c0e",
                 "shasum": ""
+            },
+            "require": {
+                "php": ">=8.3"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^13.3",
+                "symfony/var-dumper": "^7.2"
             },
             "type": "library",
             "autoload": {
+                "psr-4": {
+                    "rdx\\db\\PhpStan\\": "src/phpstan/"
+                },
                 "classmap": [
-                    "./"
-                ],
-                "exclude-from-classmap": [
-                    "/test/"
+                    "src/"
                 ]
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -42,9 +50,9 @@
             "description": "Simple MySQL/SQLite wrapper",
             "support": {
                 "issues": "https://github.com/rudiedirkx/db_generic/issues",
-                "source": "https://github.com/rudiedirkx/db_generic/tree/1.28"
+                "source": "https://github.com/rudiedirkx/db_generic/tree/2.0.1"
             },
-            "time": "2025-04-30T15:58:59+00:00"
+            "time": "2026-09-02T22:44:55+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -305,10 +313,121 @@
             "time": "2024-11-08T15:21:10+00:00"
         }
     ],
-    "packages-dev": [],
+    "packages-dev": [
+        {
+            "name": "phpstan/phpstan",
+            "version": "2.3.1",
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/6155239b488e95d26d1ebd95c6b4bb294d7f09db",
+                "reference": "6155239b488e95d26d1ebd95c6b4bb294d7f09db",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0"
+            },
+            "conflict": {
+                "phpstan/phpstan-shim": "*"
+            },
+            "bin": [
+                "phpstan",
+                "phpstan.phar"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ondřej Mirtes"
+                },
+                {
+                    "name": "Markus Staab"
+                },
+                {
+                    "name": "Vincent Langlet"
+                }
+            ],
+            "description": "PHPStan - PHP Static Analysis Tool",
+            "keywords": [
+                "dev",
+                "static analysis"
+            ],
+            "support": {
+                "docs": "https://phpstan.org/user-guide/getting-started",
+                "forum": "https://github.com/phpstan/phpstan/discussions",
+                "issues": "https://github.com/phpstan/phpstan/issues",
+                "security": "https://github.com/phpstan/phpstan/security/policy",
+                "source": "https://github.com/phpstan/phpstan-src"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/ondrejmirtes",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/phpstan",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-10-08T21:09:11+00:00"
+        },
+        {
+            "name": "rdx/phpstan-extra",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/rudiedirkx/phpstan-extra.git",
+                "reference": "642ae05c0082d2d30c9076ab0bcdd556c34cfd44"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/rudiedirkx/phpstan-extra/zipball/642ae05c0082d2d30c9076ab0bcdd556c34cfd44",
+                "reference": "642ae05c0082d2d30c9076ab0bcdd556c34cfd44",
+                "shasum": ""
+            },
+            "require": {
+                "phpstan/phpstan": "^2.1"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.68"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "rdx\\PhpstanExtra\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Rudie Dirkx",
+                    "email": "github@hotblocks.nl"
+                }
+            ],
+            "description": "More PhpStan extensions",
+            "keywords": [
+                "dev"
+            ],
+            "support": {
+                "issues": "https://github.com/rudiedirkx/phpstan-extra/issues",
+                "source": "https://github.com/rudiedirkx/phpstan-extra/tree/master"
+            },
+            "time": "2026-05-02T23:09:43+00:00"
+        }
+    ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "rdx/phpstan-extra": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {},

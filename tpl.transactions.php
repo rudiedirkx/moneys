@@ -1,3 +1,23 @@
+<?php
+
+use rdx\moneys\Transaction;
+
+/**
+ * @var array<int, Transaction> $transactions
+ * @var array<int|string, ?scalar> $categories
+ * @var array<int|string, ?scalar> $tags
+ * @var string $grouper
+ * @var bool $show_pager
+ * @var bool $with_sorting
+ * @var ?string $sort
+ * @var ?string $pager
+ * @var ?int $page
+ * @var ?float $pages
+ * @var ?int $offset
+ * @var ?int $totalRecords
+ */
+
+?>
 
 <style>
 .cb-checked {
@@ -54,7 +74,7 @@ body:not(.hide-sumdesc) .show-sumdesc {
 							|
 							<a href="?<?= html_query(array('page' => $page + 1)) ?>">&gt;&gt;</a>
 						<? endif ?>
-						(<a href="?<?= $_SERVER['QUERY_STRING'] ?>&export">export</a>)
+						(<a href="?<?= html($_SERVER['QUERY_STRING']) ?>&export">export</a>)
 					</td>
 				</tr>
 				<? $pager_html = ob_get_contents() ?>
@@ -88,10 +108,13 @@ body:not(.hide-sumdesc) .show-sumdesc {
 			<? $totalMoney = 0.0 ?>
 			<? foreach ($transactions as $tr):
 				$totalMoney += $tr->amount;
-				$tr->new_group = @$old_group != $tr->$grouper;
+				$classes = $tr->classes;
+				if ( ($old_group ?? null) != $tr->$grouper ) {
+					$classes[] = 'new-group';
+				}
 				$old_group = $tr->$grouper;
 				?>
-				<tr class="<?= implode(' ', $tr->classes) ?>">
+				<tr class="<?= implode(' ', $classes) ?>">
 					<th class="col-id">
 						<a href="transaction.php?id=<?= $tr->id ?>"><?= $tr->id ?></a>
 					</th>
